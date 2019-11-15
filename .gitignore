@@ -73,3 +73,4 @@ source/MiniSim.Core/PropertyDatabase/ChemSep/uniquac.ipd
 source/ChemSepDBAdapter/ChemSepDBAdapter/Data/srk.ipd
 *.ipd
 doc/.ipynb_checkpoints/ThermoValidation-checkpoint.ipynb
+doc/.ipynb_checkpoints/SimpleFlash-checkpoint.ipynb

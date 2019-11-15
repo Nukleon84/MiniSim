@@ -60,7 +60,12 @@ namespace MiniSim.Core.Expressions
             return Expression.Val();
         }
 
-       
+
+        public string Pretty()
+        {
+            return "  $" + Expression.Pretty()+" = 0$";
+        }
+
 
         public override string ToString()
         {

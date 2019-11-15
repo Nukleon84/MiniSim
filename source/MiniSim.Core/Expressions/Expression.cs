@@ -14,10 +14,16 @@ namespace MiniSim.Core.Expressions
         public double GradientValue;
         protected Func<double> ValueFunc;
         protected Func<Variable, double> DiffFunc;
+        protected Func<string> PrettyFunc;
 
         public List<Expression> Children;
 
         public string Name;
+
+        public Expression(string name, Func<double> valueFunc, Func<Variable, double> diffFunc, Func<string> pretty) : this(name, valueFunc, diffFunc)
+        {
+            PrettyFunc = pretty;
+        }
 
         public Expression(string name, Func<double> valueFunc, Func<Variable, double> diffFunc)
         {
@@ -28,8 +34,24 @@ namespace MiniSim.Core.Expressions
             Value = Double.NaN;
             GradientValue = Double.NaN;
 
-             Children = new List<Expression>();
+            Children = new List<Expression>();
         }
+
+        public virtual string Pretty()
+        {
+            if (PrettyFunc != null)
+                return PrettyFunc();
+            else
+            {
+                if (Children.Count != 2)
+                    return Name + (Children.Count > 0 ? "(" + String.Join(",", Children.Select(c=>c.Pretty())) + ")" : "");
+                else
+                    return Children[0].Pretty() + " " + Name + " " + Children[1].Pretty();
+            }
+        }
+
+
+
         public override string ToString()
         {
             if (Children.Count != 2)
@@ -41,7 +63,7 @@ namespace MiniSim.Core.Expressions
 
         public void SetValue(double value)
         {
-            if(double.IsNaN(value))
+            if (double.IsNaN(value))
             {
                 throw new NotFiniteNumberException();
             }
@@ -54,7 +76,7 @@ namespace MiniSim.Core.Expressions
             if (Double.IsNaN(Value))
             {
                 Value = ValueFunc();
-                if(Double.IsNaN(Value))
+                if (Double.IsNaN(Value))
                 {
                     Value = 0;
                 }
@@ -66,7 +88,7 @@ namespace MiniSim.Core.Expressions
         public double Diff(Variable var)
         {
             GradientValue = DiffFunc(var);
-            
+
             return GradientValue;
         }
 
@@ -84,14 +106,14 @@ namespace MiniSim.Core.Expressions
 
         public void AddChildren(Expression z)
         {
-            this.Children.Add(z);            
+            this.Children.Add(z);
         }
 
         public static Expression operator +(Expression u1, Expression u2)
         {
             var z = new Expression("+", () => u1.Val() + u2.Val(), (v) => u1.Diff(v) + u2.Diff(v));
             z.AddChildren(u1);
-            z.AddChildren(u2);            
+            z.AddChildren(u2);
             return z;
         }
         public static Expression operator -(Expression u1, Expression u2)
@@ -106,9 +128,9 @@ namespace MiniSim.Core.Expressions
         {
             var u1asVar = u1 as Variable;
             var u2asVar = u2 as Variable;
-               
+
             var z = new Expression("*", () =>
-            {                
+            {
                 var left = u1.Val();
                 if (left != 0)
                     return left * u2.Val();
@@ -117,7 +139,7 @@ namespace MiniSim.Core.Expressions
             },
             (vari) =>
             {
-                return (Math.Abs(u1.Val()) > Double.Epsilon ? u1.Val() * u2.Diff(vari) : 0) + (Math.Abs(u2.Val()) > Double.Epsilon ? u2.Val() * u1.Diff(vari) : 0);             
+                return (Math.Abs(u1.Val()) > Double.Epsilon ? u1.Val() * u2.Diff(vari) : 0) + (Math.Abs(u2.Val()) > Double.Epsilon ? u2.Val() * u1.Diff(vari) : 0);
             }
 
             );
@@ -132,7 +154,9 @@ namespace MiniSim.Core.Expressions
                 (vari) =>
                 {
                     return (v.Val() * u.Diff(vari) - u.Val() * v.Diff(vari)) / Math.Pow(v.Val(), 2);
-                });
+                },
+                ()=>"\\frac{"+u.Pretty()+"}{"+v.Pretty()+"}"
+                );
             z.AddChildren(u);
             z.AddChildren(v);
             return z;
@@ -142,7 +166,7 @@ namespace MiniSim.Core.Expressions
         public static Expression operator -(Expression u)
         {
             var z = new Expression("-", () => -u.Val(), (vari) => -u.Diff(vari));
-            z.AddChildren(u);            
+            z.AddChildren(u);
             return z;
         }
 

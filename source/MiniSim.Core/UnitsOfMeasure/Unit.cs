@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MiniSim.Core.UnitsOfMeasure
@@ -6,7 +7,7 @@ namespace MiniSim.Core.UnitsOfMeasure
     /// <summary>
     ///     The Base class for units of measurement. Provides helper classes for dimensional analysis
     /// </summary>
-   
+
     public class Unit
     {
         #region Fields
@@ -15,7 +16,7 @@ namespace MiniSim.Core.UnitsOfMeasure
         private string _symbol;
         private double[] _dimensions;
         private double _factor = 1;
-        private double _offset=0;       
+        private double _offset = 0;
         #endregion
 
         #region Properties
@@ -70,7 +71,7 @@ namespace MiniSim.Core.UnitsOfMeasure
             get { return _offset; }
             set { _offset = value; }
         }
-        
+
 
         #endregion
 
@@ -90,8 +91,8 @@ namespace MiniSim.Core.UnitsOfMeasure
                 newUnit = new Unit(u1.Symbol + "" + u2.Symbol, "Undefined", newDimensions);
             else
                 newUnit = new Unit(u1.Symbol + "*" + u2.Symbol, "Undefined", newDimensions);
-           
-            newUnit.Factor = u1.Factor*u2.Factor;
+
+            newUnit.Factor = u1.Factor * u2.Factor;
             newUnit.Offset = u1.Offset + u2.Offset;
             return newUnit;
         }
@@ -105,8 +106,8 @@ namespace MiniSim.Core.UnitsOfMeasure
             }
             var newUnit = new Unit(u1.Symbol + "/" + u2.Symbol, "Undefined", newDimensions)
             {
-             
-                Factor = u1.Factor/u2.Factor,
+
+                Factor = u1.Factor / u2.Factor,
                 Offset = u1.Offset - u2.Offset
             };
             return newUnit;
@@ -117,7 +118,7 @@ namespace MiniSim.Core.UnitsOfMeasure
             var newDimensions = new double[8];
             for (var i = 0; i < 8; i++)
             {
-                newDimensions[i] = u1.Dimensions[i]*power;
+                newDimensions[i] = u1.Dimensions[i] * power;
             }
             var newUnit = new Unit(u1.Symbol + "^" + power, "Undefined", newDimensions);
             return newUnit;
@@ -133,7 +134,7 @@ namespace MiniSim.Core.UnitsOfMeasure
 
             if (firstLevel)
             {
-                var secondLevel =   u1.Factor == u2.Factor && u1.Offset == u2.Offset;
+                var secondLevel = u1.Factor == u2.Factor && u1.Offset == u2.Offset;
                 return secondLevel;
             }
             return false;
@@ -154,9 +155,9 @@ namespace MiniSim.Core.UnitsOfMeasure
             //if (!Enumerable.SequenceEqual(source.Dimensions, destination.Dimensions))
             //   throw new Exception("Source and destination units do not match dimensionally.");
 
-            var baseValue = source.Factor*value + source.Offset;
-            return (baseValue - destination.Offset)/destination.Factor;
-            
+            var baseValue = source.Factor * value + source.Offset;
+            return (baseValue - destination.Offset) / destination.Factor;
+
         }
 
         public static double GetConversionFactor(Unit source, Unit destination)
@@ -170,13 +171,13 @@ namespace MiniSim.Core.UnitsOfMeasure
             //   throw new Exception("Source and destination units do not match dimensionally.");
 
             // var baseValue = source.Factor * value + source.Offset;
-            return source.Factor/destination.Factor;
-            
+            return source.Factor / destination.Factor;
+
         }
 
         public string PrintDimensions()
         {
-            string[] dimensionSymbols = {"L", "M", "t", "I", "T", "N", "J", "$"};
+            string[] dimensionSymbols = { "L", "M", "t", "I", "T", "N", "J", "$" };
             var dimensionString = "";
             for (var i = 0; i < 8; i++)
             {
@@ -202,7 +203,7 @@ namespace MiniSim.Core.UnitsOfMeasure
 
         public string PrintBaseUnits()
         {
-            string[] baseUnits = {"m", "kg", "s", "A", "K", "mol", "cd", "$"};
+            string[] baseUnits = { "m", "kg", "s", "A", "K", "mol", "cd", "$" };
             var dimensionString = "";
             var dimensionStringDenom = "";
 
@@ -284,8 +285,28 @@ namespace MiniSim.Core.UnitsOfMeasure
             Symbol = symbol;
             Name = name;
             Dimensions = baseUnit.Dimensions;
-            Factor = baseUnit.Factor*factor;
+            Factor = baseUnit.Factor * factor;
             Offset = baseUnit.Offset + offset;
+        }
+
+        public static Unit Make(Unit[] upper, Unit[] lower)
+        {
+            Unit aggregate;
+
+            if (upper.Count() > 0)
+            {
+                aggregate = upper.First();
+
+                foreach (var factor in upper.Skip(1))
+                    aggregate *= factor;
+            }
+            else
+                aggregate = SI.none;
+            
+            foreach (var factor in lower)
+                aggregate /= factor;
+
+            return aggregate;
         }
 
         #endregion

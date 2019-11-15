@@ -81,6 +81,13 @@ namespace MiniSim.Core.Expressions
         }
 
 
+        public override string Pretty()
+        {
+            return Name + (!string.IsNullOrEmpty(Superscript) ? "{" + Superscript + "}" : "") +
+               (!string.IsNullOrEmpty(Subscript) ? "_{" + Subscript + "}" : "");
+        }
+
+
         public override string ToString()
         {
             return FullName;
@@ -94,7 +101,7 @@ namespace MiniSim.Core.Expressions
         public void BindTo(Expression exp)
         {
             Value = Double.NaN;
-            ValueFunc = () => Math.Max(LowerBound, Math.Min(UpperBound, exp.Val()));            
+            ValueFunc = () => Math.Max(LowerBound, Math.Min(UpperBound, exp.Val()));
             DiffFunc = (vari) => exp.Diff(vari);
             this.Children.Clear();
             this.AddChildren(exp);
@@ -137,14 +144,14 @@ namespace MiniSim.Core.Expressions
                     }
                     break;
 
-                /*case PhysicalDimension.MolarFraction:
-                    {
-                        if (newValue > UpperBound)
-                            delta *= 0.1;
-                        if (newValue < LowerBound)
-                            delta *= 0.1;
-                    }
-                    break;*/
+                    /*case PhysicalDimension.MolarFraction:
+                        {
+                            if (newValue > UpperBound)
+                                delta *= 0.1;
+                            if (newValue < LowerBound)
+                                delta *= 0.1;
+                        }
+                        break;*/
             }
 
             newValue = Val() + delta;
