@@ -20,7 +20,7 @@ namespace MiniSim.Core.Thermodynamics.Routines
         int _checkPhaseStateChangeFrequency = 3;
         int _iterationsSinceLastPhaseChange;
 
-        public VLEFlashEquation(MaterialStream stream) : base("FlashZ()", () => 1, (vari) => 1)
+        public VLEFlashEquation(MaterialStream stream) : base("FlashZ", () => 1, (vari) => 1)
         {
             _stream = stream;
             ValueFunc = () => Eval();

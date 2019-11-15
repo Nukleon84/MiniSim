@@ -80,8 +80,9 @@ namespace MiniSim.Core.PropertyDatabase
                 var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 db = XElement.Load(path + "\\PropertyDatabase\\ChemSep\\chemsep1.xml");
             }
+            
             var comps = from nm in db.Elements("compound")
-                        where (string)nm.Element("CompoundID").Attribute("value") == name
+                        where (string)nm.Element("CompoundID").Attribute("value").Value.ToLower() == name.ToLower()
                         select nm;
 
 

@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace MiniSim.Core.Flowsheeting
 {
-    public class BaseSimulationElement:FlowsheetNode
+    public class BaseSimulationElement : FlowsheetNode
     {
-       
+
         string _description;
         string _class;
         List<Variable> _variables = new List<Variable>();
@@ -34,7 +34,7 @@ namespace MiniSim.Core.Flowsheeting
                 {
                     // AddEquationToEquationSystem(problem, vari - vari.Val(), "Fixed variable specification");
                 }
-                else if(vari.IsBound)
+                else if (vari.IsBound)
                 {
 
                 }
@@ -49,6 +49,18 @@ namespace MiniSim.Core.Flowsheeting
         }
 
 
+        public BaseSimulationElement Specify(string variable, int value)
+        {
+            Specify(variable, value, null);
+            return this;
+        }
+        public BaseSimulationElement Init(string variable, int value)
+        {
+            Init(variable, value, null);
+            return this;
+        }
+
+
         public BaseSimulationElement Specify(string variable, double value)
         {
             Specify(variable, value, null);
@@ -59,6 +71,11 @@ namespace MiniSim.Core.Flowsheeting
             Init(variable, value, null);
             return this;
         }
+        public BaseSimulationElement Init(string variable, int value, Unit unit)
+        {
+            return Init(variable, (double)value, unit);
+        }
+
         public BaseSimulationElement Init(string variable, double value, Unit unit)
         {
             var vari = GetVariable(variable);
@@ -70,12 +87,16 @@ namespace MiniSim.Core.Flowsheeting
                     vari.Init(value);
             }
             else
-                throw new InvalidOperationException("Unknown variable " + vari + " in object " + Name);
+                throw new InvalidOperationException("Unknown variable " + variable + " in object " + Name);
 
             return this;
         }
 
 
+        public BaseSimulationElement Specify(string variable, int value, Unit unit)
+        {
+            return Specify(variable, (double)value, unit);
+        }
 
         public BaseSimulationElement Specify(string variable, double value, Unit unit)
         {
@@ -88,7 +109,7 @@ namespace MiniSim.Core.Flowsheeting
                     vari.Fix(value);
             }
             else
-                throw new InvalidOperationException("Unknown variable " + vari + " in object " + Name);
+                throw new InvalidOperationException("Unknown variable " + variable + " in object " + Name);
 
             return this;
         }
@@ -101,7 +122,7 @@ namespace MiniSim.Core.Flowsheeting
                 vari.Unfix();
             }
             else
-                throw new InvalidOperationException("Unknown variable " + vari + " in object " + Name);
+                throw new InvalidOperationException("Unknown variable " + variable + " in object " + Name);
 
             return this;
         }

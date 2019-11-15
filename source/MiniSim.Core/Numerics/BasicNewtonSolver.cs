@@ -123,10 +123,7 @@ namespace MiniSim.Core.Numerics
                         delta[i] = delta[i] * V[i];
                     }
                 }
-
-               
-
-
+                
                 lambda = 1.0;
                 var distanceToBound = 1.0;
                 Variable closestVar = null;
@@ -135,20 +132,14 @@ namespace MiniSim.Core.Numerics
                 for (int i = 0; i < delta.Size; i++)
                 {
                     var distanceToBoundVari = 1.0;
-
                     var vari = system.Variables[i];
-
                     var step = delta[i];
-                    if (step > 0 && vari.Val() < vari.UpperBound - 1e-3)
-                    {
+                    if (step > 0 && vari.Val() < vari.UpperBound - 1e-3)                   
                         distanceToBoundVari = vari.UpperBound - vari.Val();                        
 
-                    }
-                    if (step < 0 && vari.Val() > vari.LowerBound + 1e-3)
-                    {
+                    if (step < 0 && vari.Val() > vari.LowerBound + 1e-3)                    
                         distanceToBoundVari = vari.Val() - vari.LowerBound;                       
-                    }
-
+                    
                     var boundFraction = distanceToBoundVari / Math.Abs(step);
                     if (boundFraction < distanceToBound)
                     {
@@ -156,15 +147,10 @@ namespace MiniSim.Core.Numerics
                         closestVar = vari;
                         closestStep = step;
                     }
-
                 }
-
-               /* lambda = distanceToBound;
-                lambda = Math.Max(0.01, lambda);
-                if(closestVar!=null)
-                {
-                }*/
-
+                lambda = distanceToBound;
+               // lambda = Math.Max(0.01, lambda);
+               
                 //Apply Newton Step
                 for (int i = 0; i < delta.Size; i++)
                 {
@@ -176,13 +162,7 @@ namespace MiniSim.Core.Numerics
                         vari.AddDelta(step);
                     }                    
                 }
-            }
-
-           /* for (int i = 0; i < system.Equations.Count; i++)
-            {
-                var eq = system.Equations[i];
-                eq.Reset();
-            }*/
+            }         
 
             _logger.Warning("Maximum number of iterations exceeded!");
 
