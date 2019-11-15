@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{15BCB926-4B07-4502-BCF8-4071D096966D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MiniSim.Core</RootNamespace>
+    <AssemblyName>MiniSim.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\bin.debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CSparse, Version=3.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\CSparse.3.3.0\lib\net45\CSparse.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Flowsheeting\Documentation\DocumentationElement.cs" />
+    <Compile Include="Flowsheeting\Documentation\SpreadsheetElement.cs" />
+    <Compile Include="Flowsheeting\Documentation\StreamTableElement.cs" />
+    <Compile Include="Flowsheeting\Documentation\TextElement.cs" />
+    <Compile Include="Flowsheeting\Flowsheet.cs" />
+    <Compile Include="Flowsheeting\FlowsheetIcon.cs" />
+    <Compile Include="Flowsheeting\FlowsheetNode.cs" />
+    <Compile Include="Flowsheeting\HeatStream.cs" />
+    <Compile Include="Flowsheeting\Port.cs" />
+    <Compile Include="Flowsheeting\ProcessUnit.cs" />
+    <Compile Include="ModelLibrary\ComponentSplitter.cs" />
+    <Compile Include="ModelLibrary\Flash.cs" />
+    <Compile Include="ModelLibrary\Heater.cs" />
+    <Compile Include="ModelLibrary\Mixer.cs" />
+    <Compile Include="ModelLibrary\Splitter.cs" />
+    <Compile Include="ModelLibrary\TraySection.cs" />
+    <Compile Include="Numerics\AlgebraicSystem.cs" />
+    <Compile Include="Expressions\Equation.cs" />
+    <Compile Include="Expressions\Expression.cs" />
+    <Compile Include="Expressions\Helper.cs" />
+    <Compile Include="Expressions\Variable.cs" />
+    <Compile Include="Flowsheeting\BaseElement.cs" />
+    <Compile Include="Flowsheeting\BaseStream.cs" />
+    <Compile Include="Flowsheeting\MaterialStream.cs" />
+    <Compile Include="Flowsheeting\Phase.cs" />
+    <Compile Include="Interfaces\ILogger.cs" />
+    <Compile Include="Interfaces\ISolver.cs" />
+    <Compile Include="Numerics\BasicNewtonSolver.cs" />
+    <Compile Include="Numerics\CSparseWrapper.cs" />
+    <Compile Include="Numerics\DecompositionSolver.cs" />
+    <Compile Include="Numerics\JacobianElement.cs" />
+    <Compile Include="Numerics\MatrixScaling.cs" />
+    <Compile Include="Numerics\ScalarGradientDescent.cs" />
+    <Compile Include="Numerics\ScalarNewtonRaphson.cs" />
+    <Compile Include="Numerics\Vector.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PropertyDatabase\Adapter.cs" />
+    <Compile Include="PropertyDatabase\Datastructures.cs" />
+    <Compile Include="Reporting\ColoredConsoleLogger.cs" />
+    <Compile Include="Reporting\CompositeLogger.cs" />
+    <Compile Include="Reporting\ErrorLogger.cs" />
+    <Compile Include="Reporting\Generator.cs" />
+    <Compile Include="Reporting\NoLogger.cs" />
+    <Compile Include="Reporting\StringBuilderLogger.cs" />
+    <Compile Include="Thermodynamics\DataStructures\BinaryInteractionParameterSet.cs" />
+    <Compile Include="Thermodynamics\Factories\CorrelationFactory.cs" />
+    <Compile Include="Thermodynamics\DataStructures\EnthalpyCalculationMethod.cs" />
+    <Compile Include="Thermodynamics\DataStructures\Enumerations.cs" />
+    <Compile Include="Thermodynamics\DataStructures\EquilibriumCalculationMethod.cs" />
+    <Compile Include="Thermodynamics\DataStructures\MethodParameters.cs" />
+    <Compile Include="Thermodynamics\Factories\PropertyFunctionFactory.cs" />
+    <Compile Include="Thermodynamics\DataStructures\Reactions.cs" />
+    <Compile Include="Thermodynamics\Routines\ActivityCoefficientNRTL.cs" />
+    <Compile Include="Thermodynamics\Routines\EnthalpyRoute.cs" />
+    <Compile Include="Thermodynamics\Routines\VLEFlashEquation.cs" />
+    <Compile Include="Thermodynamics\Substance.cs" />
+    <Compile Include="Thermodynamics\DataStructures\TemperatureDependentPropertyFunction.cs" />
+    <Compile Include="Thermodynamics\ThermodynamicCalculator.cs" />
+    <Compile Include="Thermodynamics\ThermodynamicSystem.cs" />
+    <Compile Include="Thermodynamics\Factories\VariableFactory.cs" />
+    <Compile Include="UnitsOfMeasure\Currency.cs" />
+    <Compile Include="UnitsOfMeasure\METRIC.cs" />
+    <Compile Include="UnitsOfMeasure\PhysicalDimensions.cs" />
+    <Compile Include="UnitsOfMeasure\SI.cs" />
+    <Compile Include="UnitsOfMeasure\Unit.cs" />
+    <Compile Include="UnitsOfMeasure\UnitSet.cs" />
+    <Compile Include="UnitsOfMeasure\USENG.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <Content Include="PropertyDatabase\ChemSep\nrtl.ipd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyDatabase\ChemSep\srk.ipd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyDatabase\ChemSep\uniquac.ipd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="PropertyDatabase\ChemSep\chemsep1.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
