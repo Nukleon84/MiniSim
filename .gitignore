@@ -48,6 +48,7 @@ deploy/
 [Bb]in/
 [Oo]bj/
 Help/
+.vs/
 
 # NuGet Packages
 *.nupkg
@@ -70,3 +71,5 @@ source/MiniSim.Core/PropertyDatabase/ChemSep/nrtl.ipd
 source/MiniSim.Core/PropertyDatabase/ChemSep/srk.ipd
 source/MiniSim.Core/PropertyDatabase/ChemSep/uniquac.ipd
 source/ChemSepDBAdapter/ChemSepDBAdapter/Data/srk.ipd
+*.ipd
+doc/.ipynb_checkpoints/ThermoValidation-checkpoint.ipynb
