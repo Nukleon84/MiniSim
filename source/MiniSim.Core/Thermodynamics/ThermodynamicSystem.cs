@@ -117,6 +117,15 @@ namespace MiniSim.Core.Thermodynamics
             return Components.FirstOrDefault(c => c.ID == id);
         }
 
+        public int GetComponentIndex(string id)
+        {
+            for (int i = 0; i < Components.Count; i++)
+            {
+                if (Components[i].ID == id)
+                    return i;
+            }
+            return -1;
+        }
 
         public IList<string> GetComponentIds()
         {

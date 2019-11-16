@@ -299,6 +299,41 @@ namespace MiniSim.Core.ModelLibrary
 
         }
 
+
+        public double[] GetProfile(string type, string component=null)
+        {
+            int cindex = 0;
+            if (component != null)
+                cindex = System.GetComponentIndex(component);
+
+            switch (type)
+            {
+                case "T":
+                    return _trays.Select(t => t.T.DisplayValue).ToArray();
+                case "TV":
+                    return _trays.Select(t => t.TV.DisplayValue).ToArray();
+                case "P":
+                    return _trays.Select(t => t.p.DisplayValue).ToArray();
+                case "V":
+                    return _trays.Select(t => t.V.DisplayValue).ToArray();
+                case "L":
+                    return _trays.Select(t => t.L.DisplayValue).ToArray();
+                case "x":
+                    {                        
+                        return _trays.Select(t => t.x[cindex].DisplayValue).ToArray();
+                    }
+                case "y":
+                    {
+                        return _trays.Select(t => t.y[cindex].DisplayValue).ToArray();
+                    }
+                case "yeq":
+                    {
+                        return _trays.Select(t => t.yeq[cindex].DisplayValue).ToArray();
+                    }
+            }
+
+            return new double[0];
+        }
         public EquilibriumStageSection ConnectFeed(MaterialStream stream, int stage, PhaseState phase = PhaseState.LiquidVapor)
         {
             _feeds.Add(new StageConnectivity() { Stage = stage, Stream = stream, Phase = phase });
