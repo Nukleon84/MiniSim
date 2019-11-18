@@ -80,7 +80,7 @@ namespace MiniSim.Core.Numerics
 
                 _logger.Log(String.Format("{0,-4} {1,-15} {2,-15} {3,-7} {4}", CurrentIterations, variableNorm.ToString("G6"), equationNorm.ToString("G6"), lambda, error));
 
-                if (equationNorm < Tolerance && variableNorm < Tolerance)
+                if (equationNorm < Tolerance && variableNorm < 100*Tolerance)
                 {
                     _logger.Succcess("Problem " + system.Name + " was solved. Constraint violation is below tolerance (" + CurrentIterations + " iter, " + watch.Elapsed.TotalMilliseconds.ToString("0.00") + " ms, NV = " + system.Variables.Count + ", NZ = " + system.Jacobian.Count + ", NZ% = " + (system.Jacobian.Count / (double)(system.NumberOfVariables * system.NumberOfEquations) * 100).ToString(".00") + "%)");
                     return true;

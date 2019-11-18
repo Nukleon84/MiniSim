@@ -74,3 +74,4 @@ source/ChemSepDBAdapter/ChemSepDBAdapter/Data/srk.ipd
 *.ipd
 doc/.ipynb_checkpoints/ThermoValidation-checkpoint.ipynb
 doc/.ipynb_checkpoints/SimpleFlash-checkpoint.ipynb
+doc/.ipynb_checkpoints/PressureSwingDistillation-checkpoint.ipynb
