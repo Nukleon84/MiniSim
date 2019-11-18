@@ -182,6 +182,14 @@ namespace MiniSim.Core.Flowsheeting
             VaporFraction.SetValue(oldVF);
             return State;
         }
+        
+        public MaterialStream Unfix()
+        {
+            foreach (var variable in Variables)
+                variable.IsFixed = false;
+
+            return this;
+        }
 
 
         public MaterialStream Flash()
