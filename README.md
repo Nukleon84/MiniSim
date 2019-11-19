@@ -13,6 +13,15 @@ Development of a process simulator using object oriented programming: Numerical 
 
 The thermodynamics methods implemented in this libary are part of the IKCAPE thermodynamics. I reimplemented the equations in my own modeling framework. I also use the neutral input format described in their user guide as an input format. http://dechema.de/en/IK_CAPE+THERMO-p-40.html
 
+# Intended Use-Cases
+
+MiniSim will probably never feature a GUI or graphical flowsheeting environment. Instead I want to focus on automation scenarios, and provide a simulator that is ready for digitalization applications. 
+
+Although MiniSim is right now compiled with the .net Framework, it is fully compatible with .net Core and will remain so in the future. This would allow the project to be compiled with Mono on Linux systems. 
+
+From there, many opportunities arise, from deployed soft-sensors running in Docker containers, over simulation micro-service architectures and thermodynamic property calculation REST APIs to Jupyter Notebooks combining process data with simple supplementary models, which would not neccessitate the use of a full-blown process simulator.
+
+
 # Quick Start
 
 In the \doc folder you will find some Jupyter Notebooks that show how the library is to be used in order to simulate chemical processes.
