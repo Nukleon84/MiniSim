@@ -148,7 +148,7 @@ namespace MiniSim.Core.Numerics
                         closestStep = step;
                     }
                 }
-                lambda = distanceToBound;
+                lambda = distanceToBound*BrakeFactor;
                // lambda = Math.Max(0.01, lambda);
                
                 //Apply Newton Step
