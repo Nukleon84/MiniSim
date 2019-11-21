@@ -78,8 +78,8 @@ namespace MiniSim.Core.Flowsheeting
             VaporFraction = System.VariableFactory.CreateVariable("VF", "Vapor fraction (molar)", PhysicalDimension.MolarFraction);
             vfm = System.VariableFactory.CreateVariable("VFM", "Vapor fraction (mass)", PhysicalDimension.MassFraction);
 
-            VaporFraction.LowerBound = -0.1;
-            VaporFraction.UpperBound = 1.1;
+            //VaporFraction.LowerBound = -0.1;
+            //VaporFraction.UpperBound = 1.1;
 
             foreach (var vari in Bulk.Variables)
                 vari.Group = "Bulk";
@@ -137,16 +137,14 @@ namespace MiniSim.Core.Flowsheeting
 
             var oldVF = VaporFraction.Val();
 
-            rachfordRice.Reset();
-            rachfordRice.GradientValue = 1;
+            rachfordRice.Reset();            
             VaporFraction.SetValue(0);
             var rrAt0 = rachfordRice.Val();
-            rachfordRice.Reset();
-            rachfordRice.GradientValue = 1;
+            rachfordRice.Reset();            
             VaporFraction.SetValue(1);
             var rrAt1 = rachfordRice.Val();
             rachfordRice.Reset();
-            var eps = -1e8;
+            var eps = 1e-8;
 
             if (rrAt0 > 0 && rrAt1 > 0)
             {
@@ -155,30 +153,19 @@ namespace MiniSim.Core.Flowsheeting
                 if (State == PhaseState.Vapor || State == PhaseState.DewPoint)
                     State = PhaseState.LiquidVapor;
             }
-            if (rrAt0 > 0 && Math.Abs(rrAt1) < eps)
-            {
-                State = PhaseState.BubblePoint;
-            }
-
-            if (rrAt0 < 0 && rrAt1 > 0)
-            {
-                State = PhaseState.LiquidVapor;
-            }
-
-            if (Math.Abs(rrAt0) < eps && rrAt1 < 0)
-            {
+            if (rrAt0 > 0 && Math.Abs(rrAt1) < eps)            
+                State = PhaseState.BubblePoint;   
+            if (rrAt0 < 0 && rrAt1 > 0)            
+                State = PhaseState.LiquidVapor;  
+            if (Math.Abs(rrAt0) < eps && rrAt1 < 0)            
                 State = PhaseState.DewPoint;
-            }
-
             if (rrAt0 < 0 && rrAt1 < 0)
             {
                 if (State == PhaseState.LiquidVapor || State == PhaseState.DewPoint)
                     State = PhaseState.Vapor;
                 if (State == PhaseState.Liquid || State == PhaseState.BubblePoint)
                     State = PhaseState.LiquidVapor;
-            }
-
-            rachfordRice.GradientValue = 0;
+            }            
             VaporFraction.SetValue(oldVF);
             return State;
         }

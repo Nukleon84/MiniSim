@@ -338,10 +338,18 @@ namespace MiniSim.Core.Numerics
                     // PublishStatus("Solving problem " + decomposedNlp.Name + " failed!");
                     hasError = true;
                     LogError("Solving problem " + decomposedNlp.Name + " (Size: " + decomposedNlp.Variables.Count + ") failed!");
-                    LogError("The 20 most problematic constraints are:");
-                    foreach (var eq in decomposedNlp.Equations.OrderByDescending(c => Math.Abs(c.Residual())).Take(Math.Min(20, decomposedNlp.Equations.Count)))
+                    LogError("The 10 most problematic constraints are:");
+                    foreach (var eq in decomposedNlp.Equations.OrderByDescending(c => Math.Abs(c.Residual())).Take(Math.Min(10, decomposedNlp.Equations.Count)))
                     {
                         LogError(String.Format("{2,-20} {3,-10} {4,-15} {0,20} ( {1} )", eq.Residual().ToString("G8"), eq, eq.ModelClass, eq.ModelName, eq.Group));
+                    }
+
+                    if(decomposedNlp.Equations.Count==1)
+                    {
+                        LogError("Solved for =>" + decomposedNlp.Variables.First().WriteReport());
+                        LogError("Other Variables:");
+                        foreach (var vari in decomposedNlp.Equations.First().Variables)
+                            LogError(vari.WriteReport());
                     }
                     LogError("");
                     break;
