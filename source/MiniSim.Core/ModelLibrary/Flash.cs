@@ -25,9 +25,9 @@ namespace MiniSim.Core.ModelLibrary
             Class = "Flash";
 
 
-            MaterialPorts.Add(new Port<MaterialStream>("In", PortDirection.In, 1));
-            MaterialPorts.Add(new Port<MaterialStream>("Vap", PortDirection.Out, 1));
-            MaterialPorts.Add(new Port<MaterialStream>("Liq", PortDirection.Out, 1));
+            MaterialPorts.Add(new Port<MaterialStream>("In", PortDirection.In, 1) { WidthFraction = 0, HeightFraction = 0.5, Normal = PortNormal.Left });
+            MaterialPorts.Add(new Port<MaterialStream>("Vap", PortDirection.Out, 1) { WidthFraction = 0.5, HeightFraction = 0, Normal = PortNormal.Up });
+            MaterialPorts.Add(new Port<MaterialStream>("Liq", PortDirection.Out, 1) { WidthFraction = 0.5, HeightFraction = 1, Normal = PortNormal.Down });
 
             dp = system.VariableFactory.CreateVariable("DP", "Pressure Drop", PhysicalDimension.Pressure);
             p = system.VariableFactory.CreateVariable("P", "Pressure in flash", PhysicalDimension.Pressure);

@@ -225,14 +225,15 @@ namespace MiniSim.Core.ModelLibrary
         {
             Class = "TraySection";
             NumberOfTrays = numberOfTrays;
-            // Icon.IconType = IconTypes.ColumnSection;
+            Icon.IconType = IconTypes.ColumnSection;
+            
 
-            MaterialPorts.Add(new Port<MaterialStream>("Feeds", PortDirection.In, -1));
-            MaterialPorts.Add(new Port<MaterialStream>("VIn", PortDirection.In, 1));
-            MaterialPorts.Add(new Port<MaterialStream>("LIn", PortDirection.In, 1));
-            MaterialPorts.Add(new Port<MaterialStream>("VOut", PortDirection.Out, 1));
-            MaterialPorts.Add(new Port<MaterialStream>("LOut", PortDirection.Out, 1));
-            MaterialPorts.Add(new Port<MaterialStream>("Sidestreams", PortDirection.Out, -1));
+            MaterialPorts.Add(new Port<MaterialStream>("Feeds", PortDirection.In, -1) { WidthFraction = 0, HeightFraction = 0.5, Normal= PortNormal.Left });
+            MaterialPorts.Add(new Port<MaterialStream>("VIn", PortDirection.In, 1) { WidthFraction = 1, HeightFraction = 0.95, Normal = PortNormal.Right });
+            MaterialPorts.Add(new Port<MaterialStream>("LIn", PortDirection.In, 1) { WidthFraction = 1, HeightFraction = 0.05, Normal = PortNormal.Right });
+            MaterialPorts.Add(new Port<MaterialStream>("VOut", PortDirection.Out, 1) { WidthFraction = 0.5, HeightFraction = -0.075, Normal = PortNormal.Up });
+            MaterialPorts.Add(new Port<MaterialStream>("LOut", PortDirection.Out, 1) { WidthFraction = 0.5, HeightFraction = 1.075, Normal = PortNormal.Down });
+            MaterialPorts.Add(new Port<MaterialStream>("Sidestreams", PortDirection.Out, -1) { WidthFraction = 1, HeightFraction = 0.5, Normal = PortNormal.Right });
 
             for (int i = 0; i < NumberOfTrays; i++)
             {

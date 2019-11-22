@@ -20,9 +20,9 @@ namespace MiniSim.Core.ModelLibrary
         {
             Class = "Splitter";
 
-            MaterialPorts.Add(new Port<MaterialStream>("In", PortDirection.In, 1));
-            MaterialPorts.Add(new Port<MaterialStream>("Out1", PortDirection.Out, 1));
-            MaterialPorts.Add(new Port<MaterialStream>("Out2", PortDirection.Out, 1));
+            MaterialPorts.Add(new Port<MaterialStream>("In", PortDirection.In, 1) { WidthFraction = 0, HeightFraction = 0.5, Normal = PortNormal.Left });
+            MaterialPorts.Add(new Port<MaterialStream>("Out1", PortDirection.Out, 1) { WidthFraction = 0.5, HeightFraction = 0, Normal = PortNormal.Up });
+            MaterialPorts.Add(new Port<MaterialStream>("Out2", PortDirection.Out, 1) { WidthFraction = 0.5, HeightFraction = 1, Normal = PortNormal.Down });
 
             dp = system.VariableFactory.CreateVariable("DP", "Pressure Drop", PhysicalDimension.Pressure);
             p = system.VariableFactory.CreateVariable("P", "Pressure in splitter", PhysicalDimension.Pressure);
