@@ -24,8 +24,8 @@ namespace MiniSim.Core.ModelLibrary
         {
             Class = "Heater";
 
-            MaterialPorts.Add(new Port<MaterialStream>("In", PortDirection.In, 1));
-            MaterialPorts.Add(new Port<MaterialStream>("Out", PortDirection.Out, 1));
+            MaterialPorts.Add(new Port<MaterialStream>("In", PortDirection.In, 1) {WidthFraction=0, HeightFraction=0.5, Normal = PortNormal.Left });
+            MaterialPorts.Add(new Port<MaterialStream>("Out", PortDirection.Out, 1) { WidthFraction = 1, HeightFraction = 0.5, Normal = PortNormal.Right });
             HeatPorts.Add(new Port<HeatStream>("Duty", PortDirection.In, 1));
 
             dp = system.VariableFactory.CreateVariable("DP", "Pressure Drop", PhysicalDimension.Pressure);

@@ -19,8 +19,8 @@ namespace MiniSim.Core.ModelLibrary
         {
             Class = "Mixer";
 
-            MaterialPorts.Add(new Port<MaterialStream>("In", PortDirection.In, -1));
-            MaterialPorts.Add(new Port<MaterialStream>("Out", PortDirection.Out, 1));
+            MaterialPorts.Add(new Port<MaterialStream>("In", PortDirection.In, -1) { WidthFraction = 0, HeightFraction = 0.5, Normal = PortNormal.Left });
+            MaterialPorts.Add(new Port<MaterialStream>("Out", PortDirection.Out, 1) { WidthFraction = 1, HeightFraction = 0.5, Normal = PortNormal.Right });
 
             dp = system.VariableFactory.CreateVariable("DP", "Pressure Drop", PhysicalDimension.Pressure);
             p = system.VariableFactory.CreateVariable("P", "Pressure in mixer", PhysicalDimension.Pressure);

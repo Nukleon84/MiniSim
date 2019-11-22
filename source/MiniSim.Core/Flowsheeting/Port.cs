@@ -7,16 +7,20 @@ using System.Threading.Tasks;
 namespace MiniSim.Core.Flowsheeting
 {
     public enum PortDirection { In, Out, Both };
+    public enum PortNormal { Up,Right,Down,Left };
 
     public class Port<T> where T : BaseStream
     {
 
         PortDirection _direction = PortDirection.In;
+        PortNormal _normal = PortNormal.Right;
         List<T> _streams = new List<T>();
         bool _isConnected = false;
         int _multiplicity = 1;
         string _name;
         bool _isOptional = true;
+        double _widthFraction = 0.0;
+        double _heightFraction = 0.0;
 
         public int NumberOfStreams
         {
@@ -100,6 +104,10 @@ namespace MiniSim.Core.Flowsheeting
                 _isOptional = value;
             }
         }
+
+        public double WidthFraction { get => _widthFraction; set => _widthFraction = value; }
+        public double HeightFraction { get => _heightFraction; set => _heightFraction = value; }
+        public PortNormal Normal { get => _normal; set => _normal = value; }
 
         public Port(string name, PortDirection direction, int multiplicty)
         {
