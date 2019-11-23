@@ -147,6 +147,21 @@ namespace MiniSim.Core.Flowsheeting
             return this;
         }
 
+        public Flowsheet AddDocumentation(DocumentationElement unit)
+        {
+            if (!Documentation.Contains(unit))
+                Documentation.Add(unit);
+            else
+                throw new InvalidOperationException("Element " + unit.Name + " already included in flowsheet");
+            return this;
+        }
+        public Flowsheet AddDocumentationElements(params DocumentationElement[] units)
+        {
+            foreach (var unit in units)
+                AddDocumentation(unit);
+            return this;
+        }
+
         public Flowsheet AddUnit(ProcessUnit unit)
         {
             if (!Units.Contains(unit))
