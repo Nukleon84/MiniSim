@@ -20,7 +20,7 @@ namespace MiniSim.Core.Thermodynamics.Routines
         int _checkPhaseStateChangeFrequency = 3;
         int _iterationsSinceLastPhaseChange;
 
-        public VLEFlashEquation(MaterialStream stream) : base("FlashZ", () => 1, (vari) => 1)
+        public VLEFlashEquation(MaterialStream stream, List<Variable> x) : base("FlashZ", () => 1, (vari) => 1)
         {
             _stream = stream;
             ValueFunc = () => Eval();
@@ -29,7 +29,7 @@ namespace MiniSim.Core.Thermodynamics.Routines
             //Check phase state already at first iteration, in case of changed specifications without re-init
             _iterationsSinceLastPhaseChange = 0;
 
-            var x = _stream.Liquid.ComponentMolarFraction;
+            //var x = _stream.Liquid.ComponentMolarFraction;
             var y = _stream.Vapor.ComponentMolarFraction;
 
             LV = Sym.Sum(x) - Sym.Sum(y);
