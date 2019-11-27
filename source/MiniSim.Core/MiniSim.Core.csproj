@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Expressions\Math2.cs" />
     <Compile Include="Flowsheeting\Documentation\DocumentationElement.cs" />
     <Compile Include="Flowsheeting\Documentation\SpreadsheetElement.cs" />
     <Compile Include="Flowsheeting\Documentation\StreamTableElement.cs" />
@@ -78,8 +79,10 @@
     <Compile Include="Numerics\ScalarNewtonRaphson.cs" />
     <Compile Include="Numerics\Vector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PropertyDatabase\Adapter.cs" />
+    <Compile Include="PropertyDatabase\ChemSepAdapter.cs" />
     <Compile Include="PropertyDatabase\Datastructures.cs" />
+    <Compile Include="PropertyDatabase\IDatabaseAdapter.cs" />
+    <Compile Include="PropertyDatabase\IKCapeAdapter.cs" />
     <Compile Include="Reporting\ColoredConsoleLogger.cs" />
     <Compile Include="Reporting\CompositeLogger.cs" />
     <Compile Include="Reporting\ErrorLogger.cs" />

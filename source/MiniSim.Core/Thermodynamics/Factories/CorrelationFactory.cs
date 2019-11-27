@@ -41,9 +41,7 @@ namespace MiniSim.Core.Thermodynamics
                         EnsureCoefficients(func.Coefficients, 5);
                         var Tcon = Sym.Convert(T, func.XUnit);
                         var Trefcon = Sym.Convert(Tref, func.XUnit);
-                        throw new NotSupportedException();
-                        //TODO: Imlement Coth, Tanh, Sinh
-                        //expr = func.Coefficients[0] * Sym.Par(Tcon-Trefcon) + func.Coefficients[1] * func.Coefficients[2] * Sym.Par(Sym.Coth(func.Coefficients[2] / Tcon)- Sym.Coth(func.Coefficients[2] / Trefcon)) - func.Coefficients[3] * func.Coefficients[4] * Sym.Par(Sym.Tanh(func.Coefficients[4] / Tcon)- Sym.Tanh(func.Coefficients[4] / Trefcon));
+                        expr = func.Coefficients[0] * Sym.Par(Tcon - Trefcon) + func.Coefficients[1] * func.Coefficients[2] * Sym.Par(Sym.Coth(func.Coefficients[2] / Tcon) - Sym.Coth(func.Coefficients[2] / Trefcon)) - func.Coefficients[3] * func.Coefficients[4] * Sym.Par(Sym.Tanh(func.Coefficients[4] / Tcon) - Sym.Tanh(func.Coefficients[4] / Trefcon));
                         break;
                     }
             }
@@ -99,10 +97,8 @@ namespace MiniSim.Core.Thermodynamics
                 case FunctionType.Dippr117:
                     {
                         EnsureCoefficients(func.Coefficients, 5);
-
                         var Tcon = Sym.Convert(T, func.XUnit);
-                        //    expr = func.Coefficients[0] * Tcon + func.Coefficients[1] * func.Coefficients[2] * Sym.Coth(func.Coefficients[2] / Tcon) - func.Coefficients[3] * func.Coefficients[4] * Sym.Tanh(func.Coefficients[4] / Tcon);
-                        throw new NotSupportedException();
+                        expr = func.Coefficients[0] * Tcon + func.Coefficients[1] * func.Coefficients[2] * Sym.Coth(func.Coefficients[2] / Tcon) - func.Coefficients[3] * func.Coefficients[4] * Sym.Tanh(func.Coefficients[4] / Tcon);
                         break;
                     }
                 case FunctionType.AlyLee:
@@ -112,8 +108,8 @@ namespace MiniSim.Core.Thermodynamics
                         Expression Tcon = T;
                         if (!Unit.AreEquivalent(SI.K, func.XUnit))
                             Tcon = Sym.Convert(T, func.XUnit);
-                        throw new NotSupportedException();
-                        //     expr = func.Coefficients[0] + func.Coefficients[1] * Sym.Pow(Sym.Par((func.Coefficients[2] / Tcon) / Sym.Sinh(func.Coefficients[2] / Tcon)), 2) + func.Coefficients[3] * Sym.Pow(Sym.Par((func.Coefficients[4] / Tcon) / Sym.Cosh(func.Coefficients[4] / Tcon)), 2);
+
+                        expr = func.Coefficients[0] + func.Coefficients[1] * Sym.Pow(Sym.Par((func.Coefficients[2] / Tcon) / Sym.Sinh(func.Coefficients[2] / Tcon)), 2) + func.Coefficients[3] * Sym.Pow(Sym.Par((func.Coefficients[4] / Tcon) / Sym.Cosh(func.Coefficients[4] / Tcon)), 2);
                         break;
                     }
                 case FunctionType.Antoine:
@@ -250,7 +246,7 @@ namespace MiniSim.Core.Thermodynamics
             {
                 case "HVAP":
                     return EvaluatedProperties.HeatOfVaporization;
-                case "CPID" :
+                case "CPID":
                     return EvaluatedProperties.IdealGasHeatCapacity;
                 case "DENL":
                     return EvaluatedProperties.LiquidDensity;
@@ -262,7 +258,7 @@ namespace MiniSim.Core.Thermodynamics
                     return EvaluatedProperties.SurfaceTension;
                 case "KVAP":
                     return EvaluatedProperties.VaporHeatConductivity;
-                case "VISV" :
+                case "VISV":
                     return EvaluatedProperties.VaporViscosity;
                 case "VISL":
                     return EvaluatedProperties.LiquidViscosity;

@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
+
 namespace MiniSim.Core.Expressions
 {
     /// <summary>
@@ -12,15 +14,12 @@ namespace MiniSim.Core.Expressions
     /// </summary>
     public static class Sym
     {
-
+        
         public static Expression Convert(Variable x, Unit targetUnit)
         {
             var factor = Unit.GetConversionFactor(x.InternalUnit, targetUnit);
-
-            var z = new Expression("Convert", () => factor * x.Val(), (vari) => factor * x.Diff(vari));
-            
-            z.AddChildren(x);
-            
+            var z = new Expression("Convert", () => factor * x.Val(), (vari) => factor * x.Diff(vari));            
+            z.AddChildren(x);            
             return z;
         }
 
@@ -34,6 +33,41 @@ namespace MiniSim.Core.Expressions
         public static Expression Cos(Expression x)
         {
             var z = new Expression("cos", () => Math.Cos(x.Val()), (vari) => -Math.Sin(x.Val()) * x.Diff(vari));
+            z.AddChildren(x);
+            return z;
+        }
+
+        public static Expression Tan(Expression x)
+        {
+            var z = new Expression("tan", () => Math.Cos(x.Val()), (vari) => Math.Tan(x.Val()) * x.Diff(vari));
+            z.AddChildren(x);
+            return z;
+        }
+
+
+        public static Expression Sinh(Expression x)
+        {
+            var z = new Expression("sinh", () => Math.Sinh(x.Val()), (vari) => Math.Cosh(x.Val()) * x.Diff(vari));
+            z.AddChildren(x);
+            return z;
+        }
+        public static Expression Cosh(Expression x)
+        {
+            var z = new Expression("cosh", () => Math.Cosh(x.Val()), (vari) => Math.Sinh(x.Val()) * x.Diff(vari));
+            z.AddChildren(x);
+            return z;
+        }
+
+        public static Expression Coth(Expression x)
+        {
+            var z = new Expression("coth", () => Math2.Coth(x.Val()), (vari) => -Math.Pow(Math2.Cosech(x.Val()), 2) * x.Diff(vari));
+            z.AddChildren(x);
+            return z;
+        }
+
+        public static Expression Tanh(Expression x)
+        {
+            var z = new Expression("tanh", () => Math.Tanh(x.Val()), (vari) => Math.Pow(Math2.Sech(x.Val()),2) * x.Diff(vari));
             z.AddChildren(x);
             return z;
         }
@@ -67,9 +101,7 @@ namespace MiniSim.Core.Expressions
             return z;
         }
 
-
-
-
+               
 
         public static Expression Par(Expression x)
         {

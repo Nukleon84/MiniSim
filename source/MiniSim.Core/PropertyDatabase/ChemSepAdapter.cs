@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace MiniSim.Core.PropertyDatabase
 {
-    public class ChemSepAdapter
+    public class ChemSepAdapter: IDatabaseAdapter
     {
         XElement db = null;
         Action<string> _callback;
