@@ -16,13 +16,16 @@ namespace MiniSim.Core.Flowsheeting
         #region Fields
         Phase _bulk;
         Phase _liquid;
+        Phase _liquid2;
         Phase _vapor;
         List<Phase> _phases;
         Variable[] K;
+        Variable[] KL2;
         Variable vf;
+        Variable phi;
         Variable vfm;
         PhaseState _state = PhaseState.LiquidVapor;
-
+        bool _twoLiquidPhases = false;
         Expression rachfordRice;
 
         private Variable _temperature;
@@ -62,6 +65,10 @@ namespace MiniSim.Core.Flowsheeting
         public Phase Vapor { get => _vapor; set => _vapor = value; }
         public Variable[] KValues { get => K; set => K = value; }
         public Variable VaporFraction { get => vf; set => vf = value; }
+        public Phase Liquid2 { get => _liquid2; set => _liquid2 = value; }
+        public bool TwoLiquidPhases { get => _twoLiquidPhases; set => _twoLiquidPhases = value; }
+        public Variable[] KL2Values { get => KL2; set => KL2 = value; }
+        public Variable Phi { get => phi; set => phi = value; }
         #endregion
 
         public MaterialStream(string name, ThermodynamicSystem system) : base(name, system)
@@ -72,21 +79,33 @@ namespace MiniSim.Core.Flowsheeting
             Liquid = new Phase("L", system);
             Vapor = new Phase("V", system);
 
+            if (system.EquilibriumMethod.AllowedPhases == AllowedPhases.VLLE || system.EquilibriumMethod.AllowedPhases == AllowedPhases.LLE)
+            {
+                Liquid2 = new Phase("L2", system);
+                TwoLiquidPhases = true;
+                Phi = System.VariableFactory.CreateVariable("Phi", "Liquid split fraction (molar)", PhysicalDimension.MolarFraction);
+                Phi.SetValue(0.5);
+            }
+
             Temperature = System.VariableFactory.CreateVariable("T", "Temperature", PhysicalDimension.Temperature);
             Pressure = System.VariableFactory.CreateVariable("P", "Pressure", PhysicalDimension.Pressure);
 
             VaporFraction = System.VariableFactory.CreateVariable("VF", "Vapor fraction (molar)", PhysicalDimension.MolarFraction);
             vfm = System.VariableFactory.CreateVariable("VFM", "Vapor fraction (mass)", PhysicalDimension.MassFraction);
-
-            //VaporFraction.LowerBound = -0.1;
-            //VaporFraction.UpperBound = 1.1;
-
+               
             foreach (var vari in Bulk.Variables)
                 vari.Group = "Bulk";
 
             AddVariables(Temperature, Pressure, VaporFraction, vfm);
 
+            if (TwoLiquidPhases)
+                AddVariables(Phi);
+
             _phases = new List<Phase> { Bulk, Liquid, Vapor };
+
+            if (TwoLiquidPhases)
+                _phases.Add(Liquid2);
+
             foreach (var phase in _phases)
             {
                 AddVariables(phase.TotalMolarflow);
@@ -99,9 +118,15 @@ namespace MiniSim.Core.Flowsheeting
             }
 
             Liquid.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Liquid.ComponentMolarFraction, PhaseState.Liquid));
+
+            if (TwoLiquidPhases)
+                Liquid.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Liquid2.ComponentMolarFraction, PhaseState.Liquid));
+
             Vapor.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Vapor.ComponentMolarFraction, PhaseState.Vapor));
 
             KValues = new Variable[System.Components.Count];
+            if (TwoLiquidPhases)
+                KL2Values = new Variable[System.Components.Count];
 
             for (int i = 0; i < System.Components.Count; i++)
             {
@@ -112,8 +137,24 @@ namespace MiniSim.Core.Flowsheeting
                 KValues[i].UpperBound = 1e6;
 
                 System.EquationFactory.EquilibriumCoefficient(System, KValues[i], Temperature, Pressure, Liquid.ComponentMolarFraction, Vapor.ComponentMolarFraction, i);
+
+                if (TwoLiquidPhases)
+                {
+                    KL2Values[i] = system.VariableFactory.CreateVariable("K2", "Equilibrium distribution coefficient", PhysicalDimension.Dimensionless);
+                    KL2Values[i].Subscript = System.Components[i].ID;
+                    KL2Values[i].Group = "Equilibrium";
+                    KL2Values[i].LowerBound = 1e-14;
+                    KL2Values[i].UpperBound = 1e6;
+
+                    System.EquationFactory.EquilibriumCoefficient(System, KL2Values[i], Temperature, Pressure, Liquid2.ComponentMolarFraction, Vapor.ComponentMolarFraction, i);
+                }
             }
             AddVariables(KValues);
+
+            if (TwoLiquidPhases)
+            {
+                AddVariables(KL2Values);
+            }
 
             int NC = System.Components.Count;
 
@@ -137,10 +178,10 @@ namespace MiniSim.Core.Flowsheeting
 
             var oldVF = VaporFraction.Val();
 
-            rachfordRice.Reset();            
+            rachfordRice.Reset();
             VaporFraction.SetValue(0);
             var rrAt0 = rachfordRice.Val();
-            rachfordRice.Reset();            
+            rachfordRice.Reset();
             VaporFraction.SetValue(1);
             var rrAt1 = rachfordRice.Val();
             rachfordRice.Reset();
@@ -153,11 +194,11 @@ namespace MiniSim.Core.Flowsheeting
                 if (State == PhaseState.Vapor || State == PhaseState.DewPoint)
                     State = PhaseState.LiquidVapor;
             }
-            if (rrAt0 > 0 && Math.Abs(rrAt1) < eps)            
-                State = PhaseState.BubblePoint;   
-            if (rrAt0 < 0 && rrAt1 > 0)            
-                State = PhaseState.LiquidVapor;  
-            if (Math.Abs(rrAt0) < eps && rrAt1 < 0)            
+            if (rrAt0 > 0 && Math.Abs(rrAt1) < eps)
+                State = PhaseState.BubblePoint;
+            if (rrAt0 < 0 && rrAt1 > 0)
+                State = PhaseState.LiquidVapor;
+            if (Math.Abs(rrAt0) < eps && rrAt1 < 0)
                 State = PhaseState.DewPoint;
             if (rrAt0 < 0 && rrAt1 < 0)
             {
@@ -165,11 +206,11 @@ namespace MiniSim.Core.Flowsheeting
                     State = PhaseState.Vapor;
                 if (State == PhaseState.Liquid || State == PhaseState.BubblePoint)
                     State = PhaseState.LiquidVapor;
-            }            
+            }
             VaporFraction.SetValue(oldVF);
             return State;
         }
-        
+
         public MaterialStream Unfix()
         {
             foreach (var variable in Variables)
@@ -263,8 +304,6 @@ namespace MiniSim.Core.Flowsheeting
             Vapor.TotalMolarflow.SetValue(VaporFraction.Val() * Bulk.TotalMolarflow.Val());
             Liquid.TotalMolarflow.SetValue(Bulk.TotalMolarflow.Val() - Vapor.TotalMolarflow.Val());
 
-
-
             rachfordRice.Reset();
             rachfordRice.GradientValue = 0;
             for (int i = 0; i < NC; i++)
@@ -274,6 +313,27 @@ namespace MiniSim.Core.Flowsheeting
 
                 Liquid.ComponentMolarflow[i].SetValue(Liquid.ComponentMolarFraction[i].Val() * Liquid.TotalMolarflow.Val());
                 Vapor.ComponentMolarflow[i].SetValue(Vapor.ComponentMolarFraction[i].Val() * Vapor.TotalMolarflow.Val());
+            }
+
+            if (TwoLiquidPhases)
+            {
+                for (int i = 0; i < NC; i++)
+                {
+                    var currentFlow = Liquid.ComponentMolarflow[i].Val();
+                    Liquid.ComponentMolarflow[i].SetValue((1 - System.Components[i].InitialL2Split) * currentFlow);
+                    Liquid2.ComponentMolarflow[i].SetValue((System.Components[i].InitialL2Split) * currentFlow);
+                }
+                var totalL1 = Liquid.ComponentMolarflow.Sum(f => f.Val());
+                var totalL2 = Liquid2.ComponentMolarflow.Sum(f => f.Val());
+
+                Liquid.TotalMolarflow.SetValue(totalL1);
+                Liquid2.TotalMolarflow.SetValue(totalL2);
+
+                for (int i = 0; i < NC; i++)
+                {
+                    Liquid.ComponentMolarFraction[i].SetValue(Liquid.ComponentMolarflow[i].Val() / totalL1);
+                    Liquid2.ComponentMolarFraction[i].SetValue(Liquid2.ComponentMolarflow[i].Val() / totalL2);
+                }
             }
 
             InitializeMassflows();
@@ -293,7 +353,6 @@ namespace MiniSim.Core.Flowsheeting
             }
 
             InitializeFromMolarFlows();
-
             return this;
 
         }
@@ -413,15 +472,19 @@ namespace MiniSim.Core.Flowsheeting
             int NC = System.Components.Count;
 
             //Binding Equations for calculated properties: These properties can not be FIXed. They can only be SPECed
+            #region Calculated Variables
 
             Liquid.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Liquid.ComponentMolarFraction, PhaseState.Liquid));
+            if (TwoLiquidPhases)
+                Liquid2.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Liquid2.ComponentMolarFraction, PhaseState.Liquid));
             Vapor.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Vapor.ComponentMolarFraction, PhaseState.Vapor));
             vfm.BindTo(Vapor.TotalMassflow / Sym.Max(1e-14, Bulk.TotalMassflow));
-            Vapor.TotalMolarflow.BindTo(Bulk.TotalMolarflow - Liquid.TotalMolarflow);
 
             for (int i = 0; i < System.Components.Count; i++)
             {
                 System.EquationFactory.EquilibriumCoefficient(System, KValues[i], Temperature, Pressure, Liquid.ComponentMolarFraction, Vapor.ComponentMolarFraction, i);
+                if (TwoLiquidPhases)
+                    System.EquationFactory.EquilibriumCoefficient(System, KL2Values[i], Temperature, Pressure, Liquid2.ComponentMolarFraction, Vapor.ComponentMolarFraction, i);
             }
 
             foreach (var phase in _phases)
@@ -429,13 +492,17 @@ namespace MiniSim.Core.Flowsheeting
                 phase.TotalMassflow.BindTo(Sym.Sum(phase.ComponentMassflow));
                 for (int i = 0; i < NC; i++)
                 {
-                    //phase.ComponentMolarflow[i].BindTo(phase.ComponentMolarFraction[i] * phase.TotalMolarflow);                   
                     phase.ComponentMassFraction[i].BindTo(phase.ComponentMassflow[i] / Sym.Max(1e-14, phase.TotalMassflow));
                     phase.ComponentMassflow[i].BindTo(phase.ComponentMolarflow[i] * Sym.Convert(System.Components[i].MolarWeight, System.VariableFactory.Internal.UnitDictionary[PhysicalDimension.MolarWeight]));
                 }
             }
-
+            #endregion
             //Equations that are solved in the iteration            
+
+            //Sumz=1, only when not all z are fixed
+            if (!Bulk.ComponentMolarFraction.All(c => c.IsFixed))
+                AddEquationToEquationSystem(problem, Sym.Sum(Bulk.ComponentMolarFraction) - 1, "Mole Balance");
+
             foreach (var phase in _phases)
             {
                 for (int i = 0; i < NC; i++)
@@ -443,38 +510,59 @@ namespace MiniSim.Core.Flowsheeting
                     AddEquationToEquationSystem(problem, phase.ComponentMolarflow[i] - phase.ComponentMolarFraction[i] * phase.TotalMolarflow);
                 }
             }
-            AddEquationToEquationSystem(problem, (Sym.Par(VaporFraction * Vapor.SpecificEnthalpy + Sym.Par(1 - VaporFraction) * Liquid.SpecificEnthalpy)/1e3 - Bulk.SpecificEnthalpy/1e3), "Enthalpy Balance");
-            AddEquationToEquationSystem(problem, (Sym.Par(1 - VaporFraction) * Bulk.TotalMolarflow - Liquid.TotalMolarflow), "Mole Balance");
 
-            var x = Liquid.ComponentMolarFraction;
-            var z = Bulk.ComponentMolarFraction;
-            var y = Vapor.ComponentMolarFraction;
-            var alpha = VaporFraction;
-            for (int i = 0; i < NC; i++)
+            //Definition of Vapor Fraction
+            //AddEquationToEquationSystem(problem, (Sym.Par(1 - VaporFraction) * Bulk.TotalMolarflow - Liquid.TotalMolarflow), "Mole Balance");
+            AddEquationToEquationSystem(problem, (VaporFraction * Bulk.TotalMolarflow - Vapor.TotalMolarflow), "Mole Balance");
+
+            if (TwoLiquidPhases)
             {
-                /*  foreach (var phase in _phases)
-                  {
-                      AddEquationToEquationSystem(problem, phase.ComponentMolarflow[i] - (phase.ComponentMolarFraction[i] * phase.TotalMolarflow));
-                  }*/
+                //Total mass balance
+                AddEquationToEquationSystem(problem, Bulk.TotalMolarflow - Liquid.TotalMolarflow - Liquid2.TotalMolarflow - Vapor.TotalMolarflow, "Total Mass Balance");
 
-                //  if (System.EquilibriumMethod.EquilibriumApproach == EquilibriumApproach.GammaPhi && System.EquilibriumMethod.Activity == ActivityMethod.Ideal)
+                //Definition of Liquid Fraction
+                AddEquationToEquationSystem(problem, Phi * (Liquid.TotalMolarflow + Liquid2.TotalMolarflow) - Liquid2.TotalMolarflow, "Mole Balance");
+
+                //Enthalpy Balance
+                AddEquationToEquationSystem(problem, (Sym.Par(VaporFraction * Vapor.SpecificEnthalpy + Sym.Par(1 - VaporFraction) * (Sym.Par(1 - Phi) * Liquid.SpecificEnthalpy + Phi * Liquid2.SpecificEnthalpy)) / 1e3 - Bulk.SpecificEnthalpy / 1e3), "Enthalpy Balance");
+
+                //sumx-sumy=0
+                AddEquationToEquationSystem(problem, new VLEFlashEquation(this, Liquid.ComponentMolarFraction), "Equilibrium");
+                //sumx2-sumy=0
+                AddEquationToEquationSystem(problem, new VLEFlashEquation(this, Liquid2.ComponentMolarFraction), "Equilibrium");
+
+                var x = Liquid.ComponentMolarFraction;
+                var x2 = Liquid2.ComponentMolarFraction;
+                var z = Bulk.ComponentMolarFraction;
+                var y = Vapor.ComponentMolarFraction;
+                for (int i = 0; i < NC; i++)
                 {
-                    AddEquationToEquationSystem(problem, z[i] - Sym.Par(1 + alpha * (K[i] - 1))* x[i], "Equilibrium");
+                    AddEquationToEquationSystem(problem, Sym.Par(1 - VaporFraction) * Sym.Par(Sym.Par(1 - Phi) * x[i] + Phi * x2[i]) + VaporFraction * y[i] - z[i], "Component Balance");
+                    AddEquationToEquationSystem(problem, K[i] * x[i] - y[i], "Equilibrium (VLLE)");
+                    AddEquationToEquationSystem(problem, KL2[i] * x2[i] - y[i], "Equilibrium  (VLLE)");
+                }
+
+            }
+            else
+            {
+                //Total mass balance
+                AddEquationToEquationSystem(problem, Bulk.TotalMolarflow - Liquid.TotalMolarflow - Vapor.TotalMolarflow, "Total Mass Balance");
+                                             
+                //Enthalpy Balance
+                AddEquationToEquationSystem(problem, (Sym.Par(VaporFraction * Vapor.SpecificEnthalpy + Sym.Par(1 - VaporFraction) * Liquid.SpecificEnthalpy) / 1e3 - Bulk.SpecificEnthalpy / 1e3), "Enthalpy Balance");
+
+                //sumx-sumy=0
+                AddEquationToEquationSystem(problem, new VLEFlashEquation(this, Liquid.ComponentMolarFraction), "Equilibrium");
+
+                var x = Liquid.ComponentMolarFraction;
+                var z = Bulk.ComponentMolarFraction;
+                var y = Vapor.ComponentMolarFraction;
+                for (int i = 0; i < NC; i++)
+                {
+                    AddEquationToEquationSystem(problem, (1 - VaporFraction) * x[i] + VaporFraction * y[i] - z[i], "Component-Balance");
                     AddEquationToEquationSystem(problem, K[i] * x[i] - y[i], "Equilibrium");
                 }
-                /*  else
-                  {
-                      AddEquationToEquationSystem(problem, z[i] - x[i] * (1 + alpha * (K[i] - 1)), "Equilibrium");
-                      AddEquationToEquationSystem(problem, K[i] * z[i] - y[i] * (1 + alpha * (K[i] - 1)), "Equilibrium");
-                  }*/
             }
-
-            //Sumz=1, only when not all z are fixed
-            if (!Bulk.ComponentMolarFraction.All(c => c.IsFixed))
-                AddEquationToEquationSystem(problem, Sym.Sum(Bulk.ComponentMolarFraction) - 1, "Mole Balance");
-            //Sumx-sumy=0
-            AddEquationToEquationSystem(problem, new VLEFlashEquation(this), "Equilibrium");
-
             base.CreateEquations(problem);
         }
     }

@@ -17,7 +17,7 @@ namespace MiniSim.Core.Thermodynamics
         List<TemperatureDependentPropertyFunction> _functions = new List<TemperatureDependentPropertyFunction>();
         bool _isInert = false;
         List<MethodParameters> _unaryParameters = new List<MethodParameters>();
-
+        double _initialL2Split = 0.5;
         /// <summary>
         /// Systematic name of the component
         /// </summary>
@@ -132,6 +132,7 @@ namespace MiniSim.Core.Thermodynamics
             }
         }
 
+        public double InitialL2Split { get => _initialL2Split; set => _initialL2Split = value; }
 
         public Substance RenameID(string newID)
         {
@@ -139,6 +140,11 @@ namespace MiniSim.Core.Thermodynamics
             return this;
         }
 
+        public Substance SetL2Split(double l2split)
+        {
+            InitialL2Split = l2split;
+            return this;
+        }
 
         public Substance()
         {

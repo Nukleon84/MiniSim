@@ -50,6 +50,7 @@ namespace MiniSim.Core.Reporting
 
         public void Report(MaterialStream stream)
         {
+            
             foreach (var vari in stream.Variables)
                 vari.Reset();
 
@@ -58,6 +59,8 @@ namespace MiniSim.Core.Reporting
             _logger.Log("Temperature : " + stream.Temperature.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Temperature.DisplayUnit);
             _logger.Log("Pressure    : " + stream.Pressure.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Pressure.DisplayUnit);
             _logger.Log("Vapor Frac. : " + stream.VaporFraction.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.VaporFraction.DisplayUnit);
+            if (stream.TwoLiquidPhases)
+                _logger.Log("Phi         : " + stream.Phi.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Phi.DisplayUnit);
             _logger.Log("State       : " + stream.State);
             _logger.Log("");
             _logger.Log("Mass Flow   : " + stream.Bulk.TotalMassflow.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Bulk.TotalMassflow.DisplayUnit);
@@ -69,44 +72,87 @@ namespace MiniSim.Core.Reporting
             _logger.Log("");
             var phases = new List<Phase> { stream.Bulk, stream.Liquid, stream.Vapor };
 
+
             var molarFlowUnit = stream.System.VariableFactory.Output.UnitDictionary[PhysicalDimension.MolarFlow];
             var molarFracUnit = stream.System.VariableFactory.Output.UnitDictionary[PhysicalDimension.MolarFraction];
 
             var massFlowUnit = stream.System.VariableFactory.Output.UnitDictionary[PhysicalDimension.MassFlow];
             var massFracUnit = stream.System.VariableFactory.Output.UnitDictionary[PhysicalDimension.MassFraction];
 
+            if (stream.TwoLiquidPhases)
+            {
+                _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10} {7,-10} {8,-10}", "ID", "Mixed", " ", "Liquid", " ", "Liquid2", " ", "Vapor", " "));
+                _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10} {7,-10} {8,-10}", "", molarFlowUnit, molarFracUnit, molarFlowUnit, molarFracUnit, molarFlowUnit, molarFracUnit, molarFlowUnit, molarFracUnit));
 
-            _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10}", "ID", "Mixed", " ", "Liquid", " ", "Vapor", " "));
-            _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10}", "", molarFlowUnit, molarFracUnit, molarFlowUnit, molarFracUnit, molarFlowUnit, molarFracUnit));
+                for (int i = 0; i < stream.System.Components.Count; i++)
+                {
 
-            for (int i = 0; i < stream.System.Components.Count; i++)
+                    _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10} {7,-10} {8,-10}",
+                        stream.System.Components[i].ID,
+                        stream.Bulk.ComponentMolarflow[i].DisplayValue.ToString("0.000"), stream.Bulk.ComponentMolarFraction[i].DisplayValue.ToString("0.000"),
+                        stream.Liquid.ComponentMolarflow[i].DisplayValue.ToString("0.000"), stream.Liquid.ComponentMolarFraction[i].DisplayValue.ToString("0.000"),
+                        stream.Liquid2.ComponentMolarflow[i].DisplayValue.ToString("0.000"), stream.Liquid2.ComponentMolarFraction[i].DisplayValue.ToString("0.000"),
+                        stream.Vapor.ComponentMolarflow[i].DisplayValue.ToString("0.000"), stream.Vapor.ComponentMolarFraction[i].DisplayValue.ToString("0.000")));
+                }
+                _logger.Log("");
+                _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10} {7,-10} {8,-10}", "Total", 
+                    stream.Bulk.TotalMolarflow.DisplayValue.ToString("0.000"), "", 
+                    stream.Liquid.TotalMolarflow.DisplayValue.ToString("0.000"), "",
+                    stream.Liquid2.TotalMolarflow.DisplayValue.ToString("0.000"), "",
+                    stream.Vapor.TotalMolarflow.DisplayValue.ToString("0.000"), ""));
+                _logger.Log("");
+                _logger.Log("Mass Flows");
+                _logger.Log("");
+                _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10} {7,-10} {8,-10}", "ID", "Mixed", " ", "Liquid", " ", "Liquid2", " ", "Vapor", " "));
+                _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10} {7,-10} {8,-10}", "", massFlowUnit, massFracUnit, massFlowUnit, massFracUnit, massFlowUnit, massFracUnit, massFlowUnit, massFracUnit));
+
+                for (int i = 0; i < stream.System.Components.Count; i++)
+                {
+                    _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10} {7,-10} {8,-10}",
+                      stream.System.Components[i].ID,
+                      stream.Bulk.ComponentMassflow[i].DisplayValue.ToString("0.000"), stream.Bulk.ComponentMassFraction[i].DisplayValue.ToString("0.000"),
+                      stream.Liquid.ComponentMassflow[i].DisplayValue.ToString("0.000"), stream.Liquid.ComponentMassFraction[i].DisplayValue.ToString("0.000"),
+                      stream.Liquid2.ComponentMassflow[i].DisplayValue.ToString("0.000"), stream.Liquid2.ComponentMassFraction[i].DisplayValue.ToString("0.000"),
+                      stream.Vapor.ComponentMassflow[i].DisplayValue.ToString("0.000"), stream.Vapor.ComponentMassFraction[i].DisplayValue.ToString("0.000")));
+                }
+                _logger.Log("");
+                _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10}  {7,-10} {8,-10}", "Total", stream.Bulk.TotalMassflow.DisplayValue.ToString("0.000"), "", stream.Liquid.TotalMassflow.DisplayValue.ToString("0.000"), "", stream.Liquid2.TotalMassflow.DisplayValue.ToString("0.000"), "", stream.Vapor.TotalMassflow.DisplayValue.ToString("0.000"), ""));
+
+            }
+            else
             {
 
-                _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10}",
-                    stream.System.Components[i].ID,
-                    stream.Bulk.ComponentMolarflow[i].DisplayValue.ToString("0.000"), stream.Bulk.ComponentMolarFraction[i].DisplayValue.ToString("0.000"),
-                    stream.Liquid.ComponentMolarflow[i].DisplayValue.ToString("0.000"), stream.Liquid.ComponentMolarFraction[i].DisplayValue.ToString("0.000"),
-                    stream.Vapor.ComponentMolarflow[i].DisplayValue.ToString("0.000"), stream.Vapor.ComponentMolarFraction[i].DisplayValue.ToString("0.000")));
-            }
-            _logger.Log("");
-            _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10}", "Total", stream.Bulk.TotalMolarflow.DisplayValue.ToString("0.000"), "", stream.Liquid.TotalMolarflow.DisplayValue.ToString("0.000"), "", stream.Vapor.TotalMolarflow.DisplayValue.ToString("0.000"), ""));
-            _logger.Log("");
-            _logger.Log("Mass Flows");
-            _logger.Log("");
-            _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10}", "ID", "Mixed", " ", "Liquid", " ", "Vapor", " "));
-            _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10}", "", massFlowUnit, massFracUnit, massFlowUnit, massFracUnit, massFlowUnit, massFracUnit));
+                _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10}", "ID", "Mixed", " ", "Liquid", " ", "Vapor", " "));
+                _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10}", "", molarFlowUnit, molarFracUnit, molarFlowUnit, molarFracUnit, molarFlowUnit, molarFracUnit));
 
-            for (int i = 0; i < stream.System.Components.Count; i++)
-            {
-                _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10}",
-                  stream.System.Components[i].ID,
-                  stream.Bulk.ComponentMassflow[i].DisplayValue.ToString("0.000"), stream.Bulk.ComponentMassFraction[i].DisplayValue.ToString("0.000"),
-                  stream.Liquid.ComponentMassflow[i].DisplayValue.ToString("0.000"), stream.Liquid.ComponentMassFraction[i].DisplayValue.ToString("0.000"),
-                  stream.Vapor.ComponentMassflow[i].DisplayValue.ToString("0.000"), stream.Vapor.ComponentMassFraction[i].DisplayValue.ToString("0.000")));
-            }
-            _logger.Log("");
-            _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10}", "Total", stream.Bulk.TotalMassflow.DisplayValue.ToString("0.000"), "", stream.Liquid.TotalMassflow.DisplayValue.ToString("0.000"), "", stream.Vapor.TotalMassflow.DisplayValue.ToString("0.000"), ""));
+                for (int i = 0; i < stream.System.Components.Count; i++)
+                {
 
+                    _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10}",
+                        stream.System.Components[i].ID,
+                        stream.Bulk.ComponentMolarflow[i].DisplayValue.ToString("0.000"), stream.Bulk.ComponentMolarFraction[i].DisplayValue.ToString("0.000"),
+                        stream.Liquid.ComponentMolarflow[i].DisplayValue.ToString("0.000"), stream.Liquid.ComponentMolarFraction[i].DisplayValue.ToString("0.000"),
+                        stream.Vapor.ComponentMolarflow[i].DisplayValue.ToString("0.000"), stream.Vapor.ComponentMolarFraction[i].DisplayValue.ToString("0.000")));
+                }
+                _logger.Log("");
+                _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10}", "Total", stream.Bulk.TotalMolarflow.DisplayValue.ToString("0.000"), "", stream.Liquid.TotalMolarflow.DisplayValue.ToString("0.000"), "", stream.Vapor.TotalMolarflow.DisplayValue.ToString("0.000"), ""));
+                _logger.Log("");
+                _logger.Log("Mass Flows");
+                _logger.Log("");
+                _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10}", "ID", "Mixed", " ", "Liquid", " ", "Vapor", " "));
+                _logger.Log(String.Format("{0,-10} {1,-10} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10}", "", massFlowUnit, massFracUnit, massFlowUnit, massFracUnit, massFlowUnit, massFracUnit));
+
+                for (int i = 0; i < stream.System.Components.Count; i++)
+                {
+                    _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10}",
+                      stream.System.Components[i].ID,
+                      stream.Bulk.ComponentMassflow[i].DisplayValue.ToString("0.000"), stream.Bulk.ComponentMassFraction[i].DisplayValue.ToString("0.000"),
+                      stream.Liquid.ComponentMassflow[i].DisplayValue.ToString("0.000"), stream.Liquid.ComponentMassFraction[i].DisplayValue.ToString("0.000"),
+                      stream.Vapor.ComponentMassflow[i].DisplayValue.ToString("0.000"), stream.Vapor.ComponentMassFraction[i].DisplayValue.ToString("0.000")));
+                }
+                _logger.Log("");
+                _logger.Log(String.Format("{0,-10} {1,10} {2,10} {3,10} {4,10} {5,10} {6,10}", "Total", stream.Bulk.TotalMassflow.DisplayValue.ToString("0.000"), "", stream.Liquid.TotalMassflow.DisplayValue.ToString("0.000"), "", stream.Vapor.TotalMassflow.DisplayValue.ToString("0.000"), ""));
+            }
         }
 
         #region Flowsheet
@@ -206,6 +252,7 @@ namespace MiniSim.Core.Reporting
                             _logger.Log(String.Format(lineFormat2, c.ID, unitFor(PhysicalDimension.MassFraction), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "w[" + c.ID + "]")))));
                     }
                     _logger.Log("");
+                    _logger.Log("");
                     if (showPhases)
                     {
                         _logger.Info(String.Format(lineFormat, "Liquid Molar Flow", unitFor(PhysicalDimension.MolarFlow), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "nL")))));
@@ -235,6 +282,40 @@ namespace MiniSim.Core.Reporting
                                 _logger.Log(String.Format(lineFormat2, c.ID, unitFor(PhysicalDimension.MassFraction), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "wL[" + c.ID + "]")))));
                         }
 
+
+                        if(group.Key.EquilibriumMethod.AllowedPhases== AllowedPhases.VLLE)
+                        {
+                            _logger.Log("");
+                            _logger.Log("");
+                            _logger.Info(String.Format(lineFormat, "Liquid2 Molar Flow", unitFor(PhysicalDimension.MolarFlow), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "nL2")))));
+                            foreach (var c in group.Key.Components)
+                            {
+                                if (compExists[c])
+                                    _logger.Log(String.Format(lineFormat2, c.ID, unitFor(PhysicalDimension.MolarFlow), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "nL2[" + c.ID + "]")))));
+                            }
+                            _logger.Info(String.Format(lineFormat, "Liquid2 Molar Composition", "", ""));
+                            foreach (var c in group.Key.Components)
+                            {
+                                if (compExists[c])
+                                    _logger.Log(String.Format(lineFormat2, c.ID, unitFor(PhysicalDimension.MolarFraction), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "xL2[" + c.ID + "]")))));
+                            }
+
+
+                            _logger.Info(String.Format(lineFormat, "Liquid2 Mass Flow", unitFor(PhysicalDimension.MassFlow), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "mL2")))));
+                            foreach (var c in group.Key.Components)
+                            {
+                                if (compExists[c])
+                                    _logger.Log(String.Format(lineFormat2, c.ID, unitFor(PhysicalDimension.MassFlow), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "mL2[" + c.ID + "]")))));
+                            }
+                            _logger.Info(String.Format(lineFormat, "Liquid2 Mass Composition", "", ""));
+                            foreach (var c in group.Key.Components)
+                            {
+                                if (compExists[c])
+                                    _logger.Log(String.Format(lineFormat2, c.ID, unitFor(PhysicalDimension.MassFraction), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "wL2[" + c.ID + "]")))));
+                            }
+                        }
+
+                        _logger.Log("");
                         _logger.Log("");
                         _logger.Info(String.Format(lineFormat, "Vapor Molar Flow", unitFor(PhysicalDimension.MolarFlow), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "nV")))));
                         foreach (var c in group.Key.Components)
