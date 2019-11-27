@@ -66,22 +66,22 @@ namespace ConsoleTest
             var subst1 = db.FindComponent("Water").RenameID("Wasser").SetL2Split(0.05);
             var subst2 = db.FindComponent("1-Hexanol").RenameID("Hexanol").SetL2Split(0.95);
 
-            var sys = new ThermodynamicSystem("sys", "NRTL","Default")
+            var sys = new ThermodynamicSystem("sys", "NRTL", "Default")
                         .AddComponent(subst1)
                         .AddComponent(subst2);
 
             db.SetLogCallback(Console.Write);
             db.FillBIPs(sys);
 
-           // sys.VariableFactory.SetOutputDimensions(UnitSet.CreateDefault());
+            // sys.VariableFactory.SetOutputDimensions(UnitSet.CreateDefault());
             sys.EquilibriumMethod.AllowedPhases = AllowedPhases.VLLE;
 
             var logger = new ColoredConsoleLogger();
             var reporter = new Generator(logger);
-           // reporter.Report(sys);
+            // reporter.Report(sys);
 
             var s01 = new MaterialStream("S01", sys);
-            s01.Specify("T", 40,METRIC.C);
+            s01.Specify("T", 40, METRIC.C);
             s01.Specify("P", 1, METRIC.bar);
             s01.Specify("n", 1, SI.kmol / SI.h);
             s01.Specify("x[Wasser]", 0.5);
@@ -94,17 +94,28 @@ namespace ConsoleTest
             var eq = new AlgebraicSystem("test");
             s01.CreateEquations(eq);
             var solver = new DecompositionSolver(logger);
-           //var solver = new BasicNewtonSolver(logger);
+            //var solver = new BasicNewtonSolver(logger);
 
             solver.Solve(eq);
-            
+
             reporter.Report(s01);
+        }
+
+        static void TestIKCAPE()
+        {
+            var Database = new IKCapeAdapter();
+
+            var content = System.IO.File.ReadAllText("btx.dat");
+
+            var sys = Database.LoadNeutralFile(content);
+
         }
         static void Main(string[] args)
         {
             //FlashVLE();
-           // Console.WriteLine("\n\n\n");
-            FlashLLE();
+            // Console.WriteLine("\n\n\n");
+            //FlashLLE();
+            TestIKCAPE();
             Console.WriteLine("Press any key to continue...");
             Console.ReadLine();
 

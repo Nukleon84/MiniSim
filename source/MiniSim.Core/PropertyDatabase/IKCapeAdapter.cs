@@ -9,7 +9,7 @@ using MiniSim.Core.UnitsOfMeasure;
 
 namespace MiniSim.Core.PropertyDatabase
 {
-    class IKCapeAdapter : IDatabaseAdapter
+    public class IKCapeAdapter : IDatabaseAdapter
     {
         Action<string> _callback;
 
@@ -35,12 +35,12 @@ namespace MiniSim.Core.PropertyDatabase
 
         public List<string> ListComponents(string pattern)
         {
-            throw new NotImplementedException("IKCAPEAdapter currnetly only returns complete systems. Use LoadNeutralFile(string content) method.");
+            throw new NotImplementedException("IKCAPEAdapter currently only returns complete systems. Use LoadNeutralFile(string content) method.");
         }
 
         public Substance FindComponent(string name)
         {
-            throw new NotImplementedException("IKCAPEAdapter currnetly only returns complete systems. Use LoadNeutralFile(string content) method.");
+            throw new NotImplementedException("IKCAPEAdapter currently only returns complete systems. Use LoadNeutralFile(string content) method.");
         }
 
 
