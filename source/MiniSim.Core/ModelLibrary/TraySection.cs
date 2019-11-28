@@ -849,6 +849,7 @@ namespace MiniSim.Core.ModelLibrary
                     {
                         feed.Stream.Bulk.ComponentMolarflow[comp].SetValue(_trays[feed.Stage - 1].x[comp].Val() * _trays[feed.Stage - 1].W.Val());
                     }
+                    feed.Stream.InitializeFromMolarFlows();
                     feed.Stream.FlashPT();
                 }
             }

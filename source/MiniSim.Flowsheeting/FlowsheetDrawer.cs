@@ -1,5 +1,6 @@
 ﻿using MiniSim.Core.Flowsheeting;
 using MiniSim.Core.Flowsheeting.Documentation;
+using MiniSim.Core.ModelLibrary;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,6 +13,10 @@ namespace MiniSim.FlowsheetDrawing
 {
     public class FlowsheetDrawer
     {
+        DrawingOptions _options = new DrawingOptions();
+
+        public DrawingOptions Options { get => _options; set => _options = value; }
+
         public string ConvertToBase64String(Image image)
         {
             using (MemoryStream ms = new MemoryStream())
@@ -73,7 +78,7 @@ namespace MiniSim.FlowsheetDrawing
                             if (spreadsheet != null)
                             {
                                 var maxLength = spreadsheet.Variables.Select(v => (v.ModelName + "." + v.FullName).Length).Max() + 2;
-                                
+
                                 var sb = new StringBuilder();
 
 
@@ -117,7 +122,7 @@ namespace MiniSim.FlowsheetDrawing
                 if (source == null)
                 {
                     DrawPointedRectangle(graph, stream.Icon.X, stream.Icon.Y, stream.Icon.Width, stream.Icon.Height);
-                    DrawString(graph, stream.Icon.X + stream.Icon.Width * 0.66 / 2.0, stream.Icon.Y + stream.Icon.Height / 2.0f, stream.Name,f);
+                    DrawString(graph, stream.Icon.X + stream.Icon.Width * 0.66 / 2.0, stream.Icon.Y + stream.Icon.Height / 2.0f, stream.Name, f);
 
                     var sinkCon = sink.MaterialPorts.FirstOrDefault(p => p.Streams.Contains(stream) && p.Direction == PortDirection.In);
                     sinkNormal = sinkCon.Normal;
@@ -132,7 +137,7 @@ namespace MiniSim.FlowsheetDrawing
                 if (sink == null)
                 {
                     DrawPointedRectangle(graph, stream.Icon.X, stream.Icon.Y, stream.Icon.Width, stream.Icon.Height);
-                    DrawString(graph, stream.Icon.X + stream.Icon.Width * 0.66 / 2.0, stream.Icon.Y + stream.Icon.Height / 2.0f, stream.Name,f);
+                    DrawString(graph, stream.Icon.X + stream.Icon.Width * 0.66 / 2.0, stream.Icon.Y + stream.Icon.Height / 2.0f, stream.Name, f);
 
                     var sourceCon = source.MaterialPorts.FirstOrDefault(p => p.Streams.Contains(stream) && p.Direction == PortDirection.Out);
                     sourceNormal = sourceCon.Normal;
@@ -242,6 +247,23 @@ namespace MiniSim.FlowsheetDrawing
                 }
                 else if (sourceNormal == PortNormal.Right && sinkNormal == PortNormal.Right)
                 {
+                    if (relationalType == 1)
+                    {
+                        pointList.Add(new System.Drawing.Point((int)((endXO)), (int)startYO));
+
+                        centerX = (endXO);
+                        centerY = (startYO);
+                    }
+
+                    if (relationalType == 3)
+                    {
+                        pointList.Add(new System.Drawing.Point((int)((startXO)), (int)endYO));
+
+                        centerX = (startXO);
+                        centerY = (endYO);
+                    }
+
+
                     if (relationalType == 4)
                     {
                         pointList.Add(new System.Drawing.Point((int)((startXO)), (int)endYO));
@@ -268,6 +290,15 @@ namespace MiniSim.FlowsheetDrawing
                         centerX = (startXO);
                         centerY = (endYO);
                     }
+
+                    if (relationalType == 4)
+                    {
+                        pointList.Add(new System.Drawing.Point((int)endXO, (int)startYO));
+
+                        centerX = (startXO);
+                        centerY = (endYO);
+                    }
+
                 }
                 else if (sourceNormal == PortNormal.Down && sinkNormal == PortNormal.Left)
                 {
@@ -293,9 +324,40 @@ namespace MiniSim.FlowsheetDrawing
                         centerX = (startXO + endXO) / 2.0;
                         centerY = (startYO);
                     }
+
+                    if (relationalType == 4)
+                    {
+                        pointList.Add(new System.Drawing.Point((int)((endXO)), (int)startYO));
+
+                        centerX = (startXO + endXO) / 2.0;
+                        centerY = (startYO);
+                    }
+
                 }
                 else if (sourceNormal == PortNormal.Down && sinkNormal == PortNormal.Right)
                 {
+                    if (relationalType == 1)
+                    {
+                        pointList.Add(new System.Drawing.Point((int)endXO, (int)startYO));
+                        centerX = (endXO);
+                        centerY = (startYO);
+                    }
+
+                    if (relationalType == 2)
+                    {
+                        pointList.Add(new System.Drawing.Point((int)startXO, (int)((startYO + endYO) / 2)));
+                        pointList.Add(new System.Drawing.Point((int)endXO, (int)((startYO + endYO) / 2)));
+                        centerX = (int)((startXO + endXO) / 2);
+                        centerY = (int)((startYO + endYO) / 2);
+                    }
+
+                    if (relationalType == 3)
+                    {
+                        pointList.Add(new System.Drawing.Point((int)endXO, (int)startYO));
+                        centerX = (startXO);
+                        centerY = (endYO);
+                    }
+
                     if (relationalType == 4)
                     {
                         pointList.Add(new System.Drawing.Point((int)startXO, (int)endYO));
@@ -316,14 +378,20 @@ namespace MiniSim.FlowsheetDrawing
                 //Sink Connector
                 pointList.Add(new System.Drawing.Point((int)endX, (int)endY));
 
+                bool dashed = false;
+                if (stream.GetVariable("VF").Val() > 0.5)
+                    dashed = true;
 
-                DrawLinesPoint(graph, pointList.ToArray());
+                DrawLinesPoint(graph, pointList.ToArray(), dashed);
 
-                string label = $"{stream.Name}\n" +
-                    $"{stream.Temperature.DisplayValue:F2} {stream.Temperature.DisplayUnit}\n" +
-                    $"{stream.Pressure.DisplayValue:F2} {stream.Pressure.DisplayUnit}\n" +
-                    $"{stream.Bulk.TotalMassflow.DisplayValue:F2} {stream.Bulk.TotalMassflow.DisplayUnit}\n" +
-                    $"";
+                string label = $"{stream.Name}\n";
+
+                if (Options.ShowTemperature)
+                    label += $"{stream.Temperature.DisplayValue:F2} {stream.Temperature.DisplayUnit}\n";
+                if (Options.ShowPressure)
+                    label += $"{stream.Pressure.DisplayValue:F2} {stream.Pressure.DisplayUnit}\n";
+                if (Options.ShowMassFlow)
+                    label += $"{stream.Bulk.TotalMassflow.DisplayValue:F2} {stream.Bulk.TotalMassflow.DisplayUnit}\n";
 
                 DrawString(graph, (int)centerX, (int)centerY, label, f);
             }
@@ -331,7 +399,7 @@ namespace MiniSim.FlowsheetDrawing
 
         private void drawUnits(Flowsheet flowsheet, Graphics graph)
         {
-            Font f = new Font("Arial", 11);
+            Font f = new Font("Arial", 11, FontStyle.Bold);
 
 
             foreach (var unit in flowsheet.Units)
@@ -340,11 +408,16 @@ namespace MiniSim.FlowsheetDrawing
                 {
                     case IconTypes.Stream:
                         DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
-                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, unit.Name,f);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, unit.Name, f);
                         break;
                     case IconTypes.Splitter:
+                        DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "S", f);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f);
+                        break;
                     case IconTypes.Mixer:
                         DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "M", f);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f);
                         break;
 
@@ -352,6 +425,9 @@ namespace MiniSim.FlowsheetDrawing
                         DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
                         DrawUpperHalfCircle(graph, unit.Icon.X, unit.Icon.Y - 15, 40, 30);
                         DrawLowerHalfCircle(graph, unit.Icon.X, unit.Icon.Y + unit.Icon.Height - 15, 40, 30);
+                        var column = unit as EquilibriumStageSection;
+                        if (column != null)
+                            DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "N=" + column.NumberOfTrays, f);
 
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 30, unit.Name, f);
                         break;
@@ -378,10 +454,12 @@ namespace MiniSim.FlowsheetDrawing
             return stringSize;
         }
 
-        void DrawLinesPoint(Graphics g, Point[] points)
+        void DrawLinesPoint(Graphics g, Point[] points, bool dashed)
         {
             // Create pen.
             Pen pen = new Pen(Color.DimGray, 2);
+            if (dashed && Options.ShowVaporStreams)
+                pen.DashPattern = new float[] { 1.0f, 01.0f };
             //Draw lines to screen.
             g.DrawLines(pen, points);
         }
@@ -391,7 +469,7 @@ namespace MiniSim.FlowsheetDrawing
         {
 
             // Create font and brush.
-           
+
             SolidBrush drawBrush = new SolidBrush(Color.Black);
 
             // Set format of string.
