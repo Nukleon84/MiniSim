@@ -4,6 +4,7 @@ using MiniSim.Core.ModelLibrary;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -109,6 +110,9 @@ namespace MiniSim.FlowsheetDrawing
         private void drawStreams(Flowsheet flowsheet, Graphics graph)
         {
             Font f = new Font("Arial", 11);
+
+            var maxStream = flowsheet.MaterialStreams.Max(s => s.Bulk.TotalMassflow.Val());
+            var minStream = flowsheet.MaterialStreams.Min(s => s.Bulk.TotalMassflow.Val());
 
             foreach (var stream in flowsheet.MaterialStreams)
             {
@@ -227,8 +231,8 @@ namespace MiniSim.FlowsheetDrawing
 
 
                 //Source Connector
-                pointList.Add(new System.Drawing.Point((int)startX, (int)startY));
-                pointList.Add(new System.Drawing.Point((int)startXO, (int)startYO));
+                pointList.Add(new Point((int)startX, (int)startY));
+                pointList.Add(new Point((int)startXO, (int)startYO));
 
                 double centerX = startX;
                 double centerY = startY;
@@ -238,8 +242,8 @@ namespace MiniSim.FlowsheetDrawing
                 {
                     if (relationalType == 1 || relationalType == 2)
                     {
-                        pointList.Add(new System.Drawing.Point((int)((startXO + endXO) / 2.0), (int)startYO));
-                        pointList.Add(new System.Drawing.Point((int)((startXO + endXO) / 2.0), (int)endYO));
+                        pointList.Add(new Point((int)((startXO + endXO) / 2.0), (int)startYO));
+                        pointList.Add(new Point((int)((startXO + endXO) / 2.0), (int)endYO));
 
                         centerX = (startXO + endXO) / 2.0;
                         centerY = (startYO + endYO) / 2.0;
@@ -249,15 +253,24 @@ namespace MiniSim.FlowsheetDrawing
                 {
                     if (relationalType == 1)
                     {
-                        pointList.Add(new System.Drawing.Point((int)((endXO)), (int)startYO));
+                        pointList.Add(new Point((int)((endXO)), (int)startYO));
 
                         centerX = (endXO);
                         centerY = (startYO);
                     }
 
+                    if (relationalType == 2)
+                    {
+                        pointList.Add(new Point((int)((endXO)), (int)startYO));
+
+                        centerX = (endXO);
+                        centerY = (startYO);
+                    }
+
+
                     if (relationalType == 3)
                     {
-                        pointList.Add(new System.Drawing.Point((int)((startXO)), (int)endYO));
+                        pointList.Add(new Point((int)((startXO)), (int)endYO));
 
                         centerX = (startXO);
                         centerY = (endYO);
@@ -266,7 +279,7 @@ namespace MiniSim.FlowsheetDrawing
 
                     if (relationalType == 4)
                     {
-                        pointList.Add(new System.Drawing.Point((int)((startXO)), (int)endYO));
+                        pointList.Add(new Point((int)((startXO)), (int)endYO));
 
                         centerX = (startXO);
                         centerY = (endYO);
@@ -276,7 +289,7 @@ namespace MiniSim.FlowsheetDrawing
                 {
                     if (relationalType == 1)
                     {
-                        pointList.Add(new System.Drawing.Point((int)startXO, (int)endYO));
+                        pointList.Add(new Point((int)startXO, (int)endYO));
                         centerX = (startXO);
                         centerY = (endYO);
                     }
@@ -293,10 +306,10 @@ namespace MiniSim.FlowsheetDrawing
 
                     if (relationalType == 4)
                     {
-                        pointList.Add(new System.Drawing.Point((int)endXO, (int)startYO));
+                        pointList.Add(new Point((int)endXO, (int)startYO));
 
-                        centerX = (startXO);
-                        centerY = (endYO);
+                        centerX = (endXO);
+                        centerY = (startYO);
                     }
 
                 }
@@ -304,21 +317,21 @@ namespace MiniSim.FlowsheetDrawing
                 {
                     if (relationalType == 1)
                     {
-                        pointList.Add(new System.Drawing.Point((int)((startXO + endXO) / 2.0), (int)startYO));
-                        pointList.Add(new System.Drawing.Point((int)((startXO + endXO) / 2.0), (int)endYO));
+                        pointList.Add(new Point((int)((startXO + endXO) / 2.0), (int)startYO));
+                        pointList.Add(new Point((int)((startXO + endXO) / 2.0), (int)endYO));
                         centerX = (startXO + endXO) / 2.0;
                         centerY = (startYO + endYO) / 2.0;
                     }
                     if (relationalType == 2)
                     {
-                        pointList.Add(new System.Drawing.Point((int)startXO, (int)endYO));
+                        pointList.Add(new Point((int)startXO, (int)endYO));
                         centerX = (startXO);
                         centerY = (endYO);
                     }
 
                     if (relationalType == 3)
                     {
-                        pointList.Add(new System.Drawing.Point((int)((endXO)), (int)startYO));
+                        pointList.Add(new Point((int)((endXO)), (int)startYO));
                         //pointList.Add(new System.Drawing.Point((int)((endXO) / 2.0), (int)endYO));
 
                         centerX = (startXO + endXO) / 2.0;
@@ -327,7 +340,7 @@ namespace MiniSim.FlowsheetDrawing
 
                     if (relationalType == 4)
                     {
-                        pointList.Add(new System.Drawing.Point((int)((endXO)), (int)startYO));
+                        pointList.Add(new Point((int)((endXO)), (int)startYO));
 
                         centerX = (startXO + endXO) / 2.0;
                         centerY = (startYO);
@@ -338,29 +351,29 @@ namespace MiniSim.FlowsheetDrawing
                 {
                     if (relationalType == 1)
                     {
-                        pointList.Add(new System.Drawing.Point((int)endXO, (int)startYO));
+                        pointList.Add(new Point((int)endXO, (int)startYO));
                         centerX = (endXO);
                         centerY = (startYO);
                     }
 
                     if (relationalType == 2)
                     {
-                        pointList.Add(new System.Drawing.Point((int)startXO, (int)((startYO + endYO) / 2)));
-                        pointList.Add(new System.Drawing.Point((int)endXO, (int)((startYO + endYO) / 2)));
+                        pointList.Add(new Point((int)startXO, (int)((startYO + endYO) / 2)));
+                        pointList.Add(new Point((int)endXO, (int)((startYO + endYO) / 2)));
                         centerX = (int)((startXO + endXO) / 2);
                         centerY = (int)((startYO + endYO) / 2);
                     }
 
                     if (relationalType == 3)
                     {
-                        pointList.Add(new System.Drawing.Point((int)endXO, (int)startYO));
-                        centerX = (startXO);
-                        centerY = (endYO);
+                        pointList.Add(new Point((int)endXO, (int)startYO));
+                        centerX = (int)((startXO + endXO) / 2.0);
+                        centerY = (startYO);
                     }
 
                     if (relationalType == 4)
                     {
-                        pointList.Add(new System.Drawing.Point((int)startXO, (int)endYO));
+                        pointList.Add(new Point((int)startXO, (int)endYO));
                         centerX = (startXO);
                         centerY = (endYO);
                     }
@@ -368,21 +381,65 @@ namespace MiniSim.FlowsheetDrawing
                 }
                 else
                 {
-                    pointList.Add(new System.Drawing.Point((int)((startXO + endXO) / 2.0), (int)startYO));
-                    pointList.Add(new System.Drawing.Point((int)((startXO + endXO) / 2.0), (int)endYO));
+                    pointList.Add(new Point((int)((startXO + endXO) / 2.0), (int)startYO));
+                    pointList.Add(new Point((int)((startXO + endXO) / 2.0), (int)endYO));
                     centerX = (startXO + endXO) / 2.0;
                     centerY = (startYO + endYO) / 2.0;
                 }
 
-                pointList.Add(new System.Drawing.Point((int)endXO, (int)endYO));
+                pointList.Add(new Point((int)endXO, (int)endYO));
                 //Sink Connector
-                pointList.Add(new System.Drawing.Point((int)endX, (int)endY));
+                pointList.Add(new Point((int)endX, (int)endY));
 
                 bool dashed = false;
                 if (stream.GetVariable("VF").Val() > 0.5)
                     dashed = true;
 
-                DrawLinesPoint(graph, pointList.ToArray(), dashed);
+                var width = 2.0f;
+                if (Options.ShowStreamWidth)
+                {
+                    width = (float)(Options.MinWidth + (Options.MaxWidth - Options.MinWidth) * (stream.Bulk.TotalMassflow.Val() - minStream) / (maxStream - minStream));
+                }
+
+                Color color = Color.DimGray;
+                if (Options.ShowStreamColors)
+                {
+                    byte r=0;
+                    byte g=0;
+                    byte b=0;
+
+                    var ids = stream.System.GetComponentIds();
+
+                    for (int i = 0; i < stream.System.Components.Count; i++)
+                    {
+                        Color compColor;
+                        string compColorString;
+                        Options.ColorMap.TryGetValue(ids[i], out compColorString);
+
+                        if (compColorString != null)
+                        {
+                            try
+                            {
+                                compColor = Color.FromName(compColorString);
+                            }
+                            catch (Exception e)
+                            {
+                                compColor = Color.DimGray;
+                            }
+                        }
+                        else
+                            compColor = Color.DimGray;
+
+                        var x = Options.StreamColorMassBased ? stream.Bulk.ComponentMassFraction[i].Val() : stream.Bulk.ComponentMolarFraction[i].Val();
+
+                        r += (byte)(x * compColor.R);
+                        g += (byte)(x * compColor.G);
+                        b += (byte)(x * compColor.B);                        
+                    }
+                    color = Color.FromArgb(255, r, g, b);
+                }
+
+                DrawLinesPoint(graph, pointList.ToArray(), dashed, width, color);
 
                 string label = $"{stream.Name}\n";
 
@@ -400,7 +457,6 @@ namespace MiniSim.FlowsheetDrawing
         private void drawUnits(Flowsheet flowsheet, Graphics graph)
         {
             Font f = new Font("Arial", 11, FontStyle.Bold);
-
 
             foreach (var unit in flowsheet.Units)
             {
@@ -432,9 +488,20 @@ namespace MiniSim.FlowsheetDrawing
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 30, unit.Name, f);
                         break;
                     case IconTypes.Heater:
-                    case IconTypes.TwoPhaseFlash:
                         DrawCircle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "H", f);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f);
+                        break;
+                    case IconTypes.TwoPhaseFlash:
+                        /* DrawCircle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "F", f);
+                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f);*/
+
+                        DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                        DrawUpperHalfCircle(graph, unit.Icon.X, unit.Icon.Y - 15, unit.Icon.Width, 30);
+                        DrawLowerHalfCircle(graph, unit.Icon.X, unit.Icon.Y + unit.Icon.Height - 15, unit.Icon.Width, 30);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "VLE", f);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 30, unit.Name, f);
                         break;
                 }
 
@@ -454,10 +521,15 @@ namespace MiniSim.FlowsheetDrawing
             return stringSize;
         }
 
-        void DrawLinesPoint(Graphics g, Point[] points, bool dashed)
+        void DrawLinesPoint(Graphics g, Point[] points, bool dashed, float width, Color color)
         {
             // Create pen.
-            Pen pen = new Pen(Color.DimGray, 2);
+            //AdjustableArrowCap bigArrow = new AdjustableArrowCap(5,5);
+
+            Pen pen = new Pen(color, width);
+            pen.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
+            // pen.CustomEndCap = bigArrow;
+
             if (dashed && Options.ShowVaporStreams)
                 pen.DashPattern = new float[] { 1.0f, 01.0f };
             //Draw lines to screen.
@@ -549,7 +621,7 @@ namespace MiniSim.FlowsheetDrawing
 
         void DrawBlueCircle(Graphics g, double x, double y, double width, double height)
         {
-            Pen myPen = new Pen(Brushes.Blue);
+            Pen myPen = new Pen(Brushes.DimGray);
 
             myPen.Width = 2.0f;
 

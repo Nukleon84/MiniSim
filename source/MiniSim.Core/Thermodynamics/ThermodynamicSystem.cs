@@ -111,7 +111,10 @@ namespace MiniSim.Core.Thermodynamics
                 VariableFactory.SetOutputDimensions(UnitsOfMeasure.UnitSet.CreateSI());
 
         }
-
+        public int GetNumberOfComponents()
+        {
+            return Components.Count;
+        }
         public Substance GetComponentById(string id)
         {
             return Components.FirstOrDefault(c => c.ID == id);

@@ -38,20 +38,23 @@ namespace MiniSim.Core.Flowsheeting
                     Icon.Width = 80;
                     Icon.Height = 40;                  
                     break;
+
                 case IconTypes.Splitter:
                 case IconTypes.Mixer:
                     Icon.Width = 40;
                     Icon.Height = 40;                  
                     break;
-
                 case IconTypes.ColumnSection:
                     Icon.Width = 40;
                     Icon.Height = 200;                   
                     break;
                 case IconTypes.Heater:
+                    Icon.Width = 40;
+                    Icon.Height = 40;
+                    break;
                 case IconTypes.TwoPhaseFlash:
                     Icon.Width = 40;
-                    Icon.Height = 40;                   
+                    Icon.Height = 60;                   
                     break;
             }
             return this;

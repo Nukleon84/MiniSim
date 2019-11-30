@@ -55,7 +55,7 @@ namespace MiniSim.Core.Flowsheeting
             }
         }
 
-        public ProcessUnit(string name, ThermodynamicSystem system) 
+        public ProcessUnit(string name, ThermodynamicSystem system)
         {
             Name = name;
             System = system;
@@ -96,49 +96,93 @@ namespace MiniSim.Core.Flowsheeting
             if (chem == null)
                 return this;
             ChemistryBlock = chem;
-            
+
             return this;
         }
 
-    public ProcessUnit DisableChemistry()
-    {
-        ChemistryBlock = null;
-        return this;
-    }
-
-
-    public virtual ProcessUnit Initialize()
-    {
-        return this;
-    }
-    /// <summary>
-    /// Solves the unit together with the output material streams as a single flowsheet. When using this method, the unit has to be specified fully.
-    /// </summary>
-    public virtual ProcessUnit Solve()
-    {
-        var decomp = new DecompositionSolver(new NoLogger());
-
-        var flowsheet = new Flowsheet(Name);
-        flowsheet.AddUnit(this);
-        foreach (var stream in MaterialPorts.Where(p => p.Direction == PortDirection.Out && p.IsConnected).Select(p => p.Streams.ToArray()))
+        public ProcessUnit DisableChemistry()
         {
-            flowsheet.AddMaterialStreams(stream);
-        }        
-        decomp.Solve(flowsheet);
-        return this;
+            ChemistryBlock = null;
+            return this;
+        }
+
+
+        public virtual ProcessUnit Initialize()
+        {
+            return this;
+        }
+        /// <summary>
+        /// Solves the unit together with the output material streams as a single flowsheet. When using this method, the unit has to be specified fully.
+        /// </summary>
+        public virtual ProcessUnit Solve()
+        {
+            var decomp = new DecompositionSolver(new NoLogger());
+
+            var flowsheet = new Flowsheet(Name);
+            flowsheet.AddUnit(this);
+            foreach (var stream in MaterialPorts.Where(p => p.Direction == PortDirection.Out && p.IsConnected).Select(p => p.Streams.ToArray()))
+            {
+                flowsheet.AddMaterialStreams(stream);
+            }
+            decomp.Solve(flowsheet);
+            return this;
+
+        }
+
+        public ProcessUnit RotatePorts(int rotations)
+        {
+            double x0 = 0.5;
+            double y0 = 0.5;
+
+            var angle = -rotations * Math.PI / 2;
+
+            foreach (var port in MaterialPorts)
+            {
+                var x = port.WidthFraction;
+                var y = port.HeightFraction;
+                port.WidthFraction = x0 + (x - x0) * Math.Cos(angle) + (y - y0) * Math.Sin(angle);
+                port.HeightFraction = y0 - (x - x0) * Math.Sin(angle) + (y - y0) * Math.Cos(angle);
+                
+                if (rotations > 0)
+                    for (int i = 0; i < rotations; i++)
+                    {
+                        if (port.Normal == PortNormal.Left)
+                            port.Normal = PortNormal.Up;
+                        else if (port.Normal == PortNormal.Up)
+                            port.Normal = PortNormal.Right;
+                        else if (port.Normal == PortNormal.Right)
+                            port.Normal = PortNormal.Down;
+                        else
+                            port.Normal = PortNormal.Left;
+                    }
+                else
+                    for (int i = 0; i < -rotations; i++)
+                    {
+                        if (port.Normal == PortNormal.Left)
+                            port.Normal = PortNormal.Down;
+                        else if (port.Normal == PortNormal.Down)
+                            port.Normal = PortNormal.Right;
+                        else if (port.Normal == PortNormal.Right)
+                            port.Normal = PortNormal.Up;
+                        else
+                            port.Normal = PortNormal.Left;
+                    }
+            }
+            return this;
+        }
+
+
+        public Port<MaterialStream> FindMaterialPort(string portName)
+        {
+            return MaterialPorts.FirstOrDefault(p => p.Name == portName);
+        }
+
+        public Port<HeatStream> FindHeatPort(string portName)
+        {
+            return HeatPorts.FirstOrDefault(p => p.Name == portName);
+        }
+
+
 
     }
-
-
-    public Port<MaterialStream> FindMaterialPort(string portName)
-    {
-        return MaterialPorts.FirstOrDefault(p => p.Name == portName);
-    }
-
-    public Port<HeatStream> FindHeatPort(string portName)
-    {
-        return HeatPorts.FirstOrDefault(p => p.Name == portName);
-    }
-
-}
 }

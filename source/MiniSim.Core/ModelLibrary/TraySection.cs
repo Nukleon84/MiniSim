@@ -2,6 +2,7 @@
 using MiniSim.Core.Flowsheeting;
 using MiniSim.Core.Interfaces;
 using MiniSim.Core.Numerics;
+using MiniSim.Core.Reporting;
 using MiniSim.Core.Thermodynamics;
 using MiniSim.Core.Thermodynamics.Routines;
 using MiniSim.Core.UnitsOfMeasure;
@@ -226,9 +227,9 @@ namespace MiniSim.Core.ModelLibrary
             Class = "TraySection";
             NumberOfTrays = numberOfTrays;
             Icon.IconType = IconTypes.ColumnSection;
-            
 
-            MaterialPorts.Add(new Port<MaterialStream>("Feeds", PortDirection.In, -1) { WidthFraction = 0, HeightFraction = 0.5, Normal= PortNormal.Left });
+
+            MaterialPorts.Add(new Port<MaterialStream>("Feeds", PortDirection.In, -1) { WidthFraction = 0, HeightFraction = 0.5, Normal = PortNormal.Left });
             MaterialPorts.Add(new Port<MaterialStream>("VIn", PortDirection.In, 1) { WidthFraction = 1, HeightFraction = 0.95, Normal = PortNormal.Right });
             MaterialPorts.Add(new Port<MaterialStream>("LIn", PortDirection.In, 1) { WidthFraction = 1, HeightFraction = 0.05, Normal = PortNormal.Right });
             MaterialPorts.Add(new Port<MaterialStream>("VOut", PortDirection.Out, 1) { WidthFraction = 0.5, HeightFraction = -0.075, Normal = PortNormal.Up });
@@ -301,7 +302,7 @@ namespace MiniSim.Core.ModelLibrary
         }
 
 
-        public double[] GetProfile(string type, string component=null)
+        public double[] GetProfile(string type, string component = null)
         {
             int cindex = 0;
             if (component != null)
@@ -320,7 +321,7 @@ namespace MiniSim.Core.ModelLibrary
                 case "L":
                     return _trays.Select(t => t.L.DisplayValue).ToArray();
                 case "x":
-                    {                        
+                    {
                         return _trays.Select(t => t.x[cindex].DisplayValue).ToArray();
                     }
                 case "y":
@@ -371,7 +372,7 @@ namespace MiniSim.Core.ModelLibrary
             var Sidestreams = FindMaterialPort("Sidestreams");
 
             var pscale = 1e4;
-            var hscale = 1e4;
+            var hscale = 1e3;
             var L0 = LIn.Bulk.TotalMolarflow;
             var x0 = LIn.Bulk.ComponentMolarFraction;
             var VNT = VIn.Bulk.TotalMolarflow;
@@ -379,11 +380,11 @@ namespace MiniSim.Core.ModelLibrary
 
             ApplyIgnoredComponents();
 
-           /* foreach (var vari in Variables)
-            {   
-                if(vari.IsBound)
-                    vari.Unbind();
-            }*/
+            /* foreach (var vari in Variables)
+             {   
+                 if(vari.IsBound)
+                     vari.Unbind();
+             }*/
 
             for (var i = 0; i < NumberOfTrays; i++)
             {
@@ -444,13 +445,8 @@ namespace MiniSim.Core.ModelLibrary
                 {
                     AddEquationToEquationSystem(problem, (tray.T / 100) - (tray.TV / 100));
                     for (var comp = 0; comp < NC; comp++)
-                    {
-                        //tray.yeq[comp].BindTo(tray.y[comp]);
-                        //tray.yeq[comp]=(tray.y[comp]);
-                        //tray.y[comp].BindTo(tray.yeq[comp]);
-                        //tray.yeq[comp].SetValue(tray.y[comp].Val());
+                    {                      
                         AddEquationToEquationSystem(problem, tray.yeq[comp] - tray.y[comp]);
-
                     }
                 }
 
@@ -567,10 +563,10 @@ namespace MiniSim.Core.ModelLibrary
                 _trays[feed.Stage - 1].F.Unfix();
                 _trays[feed.Stage - 1].HF.IsConstant = false;
                 _trays[feed.Stage - 1].F.IsConstant = false;
-                
+
                 _trays[feed.Stage - 1].HF.SetValue(feed.Stream.Bulk.SpecificEnthalpy.Val());
                 _trays[feed.Stage - 1].F.SetValue(feed.Stream.Bulk.TotalMolarflow.Val());
-            
+
                 AddEquationToEquationSystem(problem, (_trays[feed.Stage - 1].F) - (feed.Stream.Bulk.TotalMolarflow));
                 AddEquationToEquationSystem(problem, (_trays[feed.Stage - 1].HF / 1e4) - (feed.Stream.Bulk.SpecificEnthalpy / 1e4));
 
@@ -673,58 +669,168 @@ namespace MiniSim.Core.ModelLibrary
 
         void InitAbsorber()
         {
-            int NC = System.Components.Count;
+            /* int NC = System.Components.Count;
 
+             var VIn = FindMaterialPort("VIn");
+             var LIn = FindMaterialPort("LIn");
+             var VOut = FindMaterialPort("VOut");
+             var LOut = FindMaterialPort("LOut");
+
+             var TTop = LIn.Streams[0].Temperature.Val();
+             var TBot = VIn.Streams[0].Temperature.Val();
+
+             for (int i = 0; i < NumberOfTrays; i++)
+             {
+                 _trays[i].T.SetValue(TTop + (TBot - TTop) / (double)(NumberOfTrays - 1) * i);
+                 _trays[i].TV.SetValue(TTop + (TBot - TTop) / (double)(NumberOfTrays - 1) * i);
+
+                 if (i == 0)
+                     _trays[i].L.SetValue(LIn.Streams[0].Bulk.TotalMolarflow.Val());
+                 else
+                     _trays[i].L.SetValue(_trays[i - 1].L.Val());
+
+                 _trays[i].V.SetValue(VIn.Streams[0].Bulk.TotalMolarflow.Val());
+                 _trays[i].HV.SetValue(VIn.Streams[0].Bulk.SpecificEnthalpy.Val());
+                 _trays[i].HL.SetValue(LIn.Streams[0].Bulk.SpecificEnthalpy.Val());
+
+                 for (int j = 0; j < System.Components.Count; j++)
+
+                 {
+                     _trays[i].x[j].SetValue(LIn.Streams[0].Bulk.ComponentMolarFraction[j].Val());
+                     _trays[i].y[j].SetValue(VIn.Streams[0].Bulk.ComponentMolarFraction[j].Val());
+                 }
+             }
+
+             for (int i = NumberOfTrays - 1; i >= 0; i--)
+             {
+                 if (i < NumberOfTrays - 1)
+                     _trays[i].p.SetValue(_trays[i + 1].p.Val() - _trays[i + 1].DP.Val());
+                 else
+                     _trays[i].p.SetValue(VIn.Streams[0].Pressure.Val());
+             }
+
+             VOut.Streams[0].Temperature.SetValue(_trays[0].T.Val());
+             VOut.Streams[0].Pressure.SetValue(_trays[0].p.Val() - _trays[0].DP.Val());
+
+             LOut.Streams[0].Temperature.SetValue(_trays[NumberOfTrays - 1].T.Val());
+             LOut.Streams[0].Pressure.SetValue(_trays[NumberOfTrays - 1].p.Val());
+
+             for (int j = 0; j < System.Components.Count; j++)
+             {
+                 VOut.Streams[0].Bulk.ComponentMolarflow[j].SetValue(_trays[0].V.Val() * _trays[0].y[j].Val());
+                 LOut.Streams[0].Bulk.ComponentMolarflow[j].SetValue(_trays[NumberOfTrays - 1].L.Val() * _trays[NumberOfTrays - 1].x[j].Val());
+             }
+
+             InitOutlets();*/
+
+            int NC = System.Components.Count;
             var VIn = FindMaterialPort("VIn");
             var LIn = FindMaterialPort("LIn");
             var VOut = FindMaterialPort("VOut");
             var LOut = FindMaterialPort("LOut");
+            var Sidestreams = FindMaterialPort("Sidestreams");
 
-            var TTop = LIn.Streams[0].Temperature.Val();
-            var TBot = VIn.Streams[0].Temperature.Val();
+            var feedcopy = new MaterialStream("FC", System);
+            feedcopy.CopyFrom(LIn.Streams[0]);
+            for (int i = 0; i < System.GetNumberOfComponents(); i++)
+            {
+                feedcopy.Bulk.ComponentMolarflow[i].SetValue(feedcopy.Bulk.ComponentMolarflow[i].Val() + VIn.Streams[0].Bulk.ComponentMolarflow[i].Val());
+            }
+            feedcopy.InitializeFromMolarFlows();
+            feedcopy.VaporFraction.SetValue(0.01);
+            feedcopy.FlashPZ();
+
+            double[] a = new double[NC];
+            double Kmin = feedcopy.KValues.Min(v => v.Val());
+
+            for (int i = 0; i < NC; i++)
+            {
+                a[i] = feedcopy.KValues[i].Val() / Kmin;
+            }
+
+            // var F = In.Streams[0].Bulk.TotalMolarflow.Val();
+            //  var D = F * distillateToFeed;
+            var V = VIn.Streams[0].Bulk.TotalMolarflow.Val();
+            var Lr = LIn.Streams[0].Bulk.TotalMolarflow.Val();
 
             for (int i = 0; i < NumberOfTrays; i++)
             {
-                _trays[i].T.SetValue(TTop + (TBot - TTop) / (double)(NumberOfTrays - 1) * i);
-                _trays[i].TV.SetValue(TTop + (TBot - TTop) / (double)(NumberOfTrays - 1) * i);
+                _trays[i].V.SetValue(V);
 
-                if (i == 0)
-                    _trays[i].L.SetValue(LIn.Streams[0].Bulk.TotalMolarflow.Val());
-                else
-                    _trays[i].L.SetValue(_trays[i - 1].L.Val());
+                _trays[i].L.SetValue(Lr);
 
-                _trays[i].V.SetValue(VIn.Streams[0].Bulk.TotalMolarflow.Val());
-                _trays[i].HV.SetValue(VIn.Streams[0].Bulk.SpecificEnthalpy.Val());
-                _trays[i].HL.SetValue(LIn.Streams[0].Bulk.SpecificEnthalpy.Val());
 
-                for (int j = 0; j < System.Components.Count; j++)
-
+                for (int c = 0; c < NC; c++)
                 {
-                    _trays[i].x[j].SetValue(LIn.Streams[0].Bulk.ComponentMolarFraction[j].Val());
-                    _trays[i].y[j].SetValue(VIn.Streams[0].Bulk.ComponentMolarFraction[j].Val());
+                    _trays[i].x[c].SetValue(1.0 / (double)NC);
+                    _trays[i].y[c].SetValue(1.0 / (double)NC);
                 }
-            }
 
-            for (int i = NumberOfTrays - 1; i >= 0; i--)
+            }
+            _trays[0].F.SetValue(Lr);
+            _trays[NumberOfTrays - 1].F.SetValue(V);
+            for (var comp = 0; comp < NC; comp++)
             {
-                if (i < NumberOfTrays - 1)
-                    _trays[i].p.SetValue(_trays[i + 1].p.Val() - _trays[i + 1].DP.Val());
-                else
-                    _trays[i].p.SetValue(VIn.Streams[0].Pressure.Val());
+                _trays[0].z[comp].SetValue(LIn.Streams[0].Bulk.ComponentMolarFraction[comp].Val());
+                _trays[NumberOfTrays - 1].z[comp].SetValue(VIn.Streams[0].Bulk.ComponentMolarFraction[comp].Val());
+
             }
 
-            VOut.Streams[0].Temperature.SetValue(_trays[0].T.Val());
-            VOut.Streams[0].Pressure.SetValue(_trays[0].p.Val() - _trays[0].DP.Val());
+            var eq = new AlgebraicSystem("Column Init");
 
-            LOut.Streams[0].Temperature.SetValue(_trays[NumberOfTrays - 1].T.Val());
-            LOut.Streams[0].Pressure.SetValue(_trays[NumberOfTrays - 1].p.Val());
-
-            for (int j = 0; j < System.Components.Count; j++)
+            for (int j = 0; j < NumberOfTrays; j++)
             {
-                VOut.Streams[0].Bulk.ComponentMolarflow[j].SetValue(_trays[0].V.Val() * _trays[0].y[j].Val());
-                LOut.Streams[0].Bulk.ComponentMolarflow[j].SetValue(_trays[NumberOfTrays - 1].L.Val() * _trays[NumberOfTrays - 1].x[j].Val());
-            }
+                var sumax = Sym.Sum(0, NC, (k) => a[k] * _trays[j].x[k]);
 
+                for (var i = 0; i < NC; i++)
+                {
+                    Expression Vip1 = 0;
+                    Expression Lim1 = 0;
+
+                    if (j < NumberOfTrays - 1)
+                        Vip1 = _trays[j + 1].V * a[i] * _trays[j + 1].x[i] / Sym.Sum(0, NC, (k) => a[k] * _trays[j + 1].x[k]);
+                    else
+                        Vip1 = 0;// VIn.Streams[0].Bulk.TotalMolarflow * VIn.Streams[0].Bulk.ComponentMolarFraction[i];
+
+                    if (j > 0)
+                        Lim1 = _trays[j - 1].L * _trays[j - 1].x[i];
+                    else
+                        Lim1 = 0;// LIn.Streams[0].Bulk.TotalMolarflow * LIn.Streams[0].Bulk.ComponentMolarFraction[i];
+
+
+                    var Mij = _trays[j].F * _trays[j].z[i] - _trays[j].V * a[i] * _trays[j].x[i] / (sumax) - _trays[j].L * _trays[j].x[i];
+
+                    eq.AddEquation(new Equation(Vip1 + Lim1 + Mij));
+                    // _trays[j].x[i].LowerBound = -1000;
+                    // _trays[j].x[i].UpperBound = +1000;
+                }
+                eq.AddVariables(_trays[j].x);
+            }
+            var solver = new DecompositionSolver(new NoLogger());
+            var status = solver.Solve(eq);
+
+            if (status)
+            {
+                for (int j = 0; j < NumberOfTrays; j++)
+                {
+                    var sumax = Sym.Sum(0, NC, (k) => a[k] * _trays[j].x[k]);
+
+                    for (var i = 0; i < NC; i++)
+                    {
+                        _trays[j].y[i].SetValue(a[i] * _trays[j].x[i].Val() / (sumax.Val()));
+                        _trays[j].yeq[i].SetValue(a[i] * _trays[j].x[i].Val() / (sumax.Val()));
+
+                        feedcopy.Bulk.ComponentMolarFraction[i].SetValue(_trays[j].x[i].Val());
+                    }
+                    feedcopy.Pressure.SetValue(_trays[j].p.Val());
+                    feedcopy.FlashPZ();
+                    _trays[j].T.SetValue(feedcopy.Temperature.Val());
+                    _trays[j].TV.SetValue(feedcopy.Temperature.Val());
+                }
+                _trays[0].F.SetValue(0);
+                _trays[NumberOfTrays - 1].F.SetValue(0);
+
+            }
             InitOutlets();
         }
 
