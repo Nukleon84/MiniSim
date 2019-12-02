@@ -11,7 +11,7 @@ namespace MiniSim.FlowsheetDrawing
         public bool ShowTemperature = true;
         public bool ShowPressure = true;
         public bool ShowMassFlow = true;
-
+        public bool ShowConnectors = false;
         public bool ShowStreamColors = false;
         public bool StreamColorMassBased = false;
         public Dictionary<string, string> ColorMap = new Dictionary<string, string>();

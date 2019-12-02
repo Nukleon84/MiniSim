@@ -222,6 +222,8 @@ namespace MiniSim.Core.ModelLibrary
             }
         }
 
+        public List<StageConnectivity> Sidestream { get => _sidestream; set => _sidestream = value; }
+
         public EquilibriumStageSection(string name, ThermodynamicSystem system, int numberOfTrays) : base(name, system)
         {
             Class = "TraySection";
@@ -347,7 +349,7 @@ namespace MiniSim.Core.ModelLibrary
         {
             var con = new StageConnectivity() { Stage = stage, Stream = stream, Phase = PhaseState.Liquid };
             con.Factor.SetValue(factor);
-            _sidestream.Add(con);
+            Sidestream.Add(con);
             Connect("Sidestreams", stream);
             return this;
         }
@@ -356,7 +358,7 @@ namespace MiniSim.Core.ModelLibrary
         {
             var con = new StageConnectivity() { Stage = stage, Stream = stream, Phase = PhaseState.Vapor };
             con.Factor.SetValue(factor);
-            _sidestream.Add(con);
+            Sidestream.Add(con);
             Connect("Sidestreams", stream);
             return this;
         }
@@ -445,7 +447,7 @@ namespace MiniSim.Core.ModelLibrary
                 {
                     AddEquationToEquationSystem(problem, (tray.T / 100) - (tray.TV / 100));
                     for (var comp = 0; comp < NC; comp++)
-                    {                      
+                    {
                         AddEquationToEquationSystem(problem, tray.yeq[comp] - tray.y[comp]);
                     }
                 }
@@ -582,7 +584,7 @@ namespace MiniSim.Core.ModelLibrary
                 }
             }
 
-            foreach (var feed in _sidestream)
+            foreach (var feed in Sidestream)
             {
                 if (feed.Phase == PhaseState.Liquid)
                 {
@@ -590,10 +592,15 @@ namespace MiniSim.Core.ModelLibrary
                     _trays[feed.Stage - 1].W.Unfix();
                     _trays[feed.Stage - 1].RL.Unfix();
                     _trays[feed.Stage - 1].RL.SetValue(feed.Factor.Val());
+
+                    if (feed.Factor.IsFixed)
+                        AddVariable(feed.Factor);
+
                     AddEquationToEquationSystem(problem, (_trays[feed.Stage - 1].RL) - (feed.Factor));
+
                     AddEquationToEquationSystem(problem, (_trays[feed.Stage - 1].W) - (_trays[feed.Stage - 1].RL * _trays[feed.Stage - 1].L));
+
                     _trays[feed.Stage - 1].W.SetValue((_trays[feed.Stage - 1].RL.Val() * _trays[feed.Stage - 1].L.Val()));
-                    _trays[feed.Stage - 1].RL.SetValue(feed.Factor.Val());
 
                     AddEquationToEquationSystem(problem, feed.Stream.Pressure - (_trays[feed.Stage - 1].p));
                     AddEquationToEquationSystem(problem, feed.Stream.Temperature - (_trays[feed.Stage - 1].T));
@@ -941,7 +948,7 @@ namespace MiniSim.Core.ModelLibrary
             // VOut.Streams[0].State = PhaseState.DewPoint;
             LOut.Streams[0].State = PhaseState.BubblePoint;
 
-            foreach (var feed in _sidestream)
+            foreach (var feed in Sidestream)
             {
                 if (feed.Phase == PhaseState.Liquid)
                 {

@@ -58,6 +58,7 @@
     <Compile Include="Process Units\MixerTests.cs" />
     <Compile Include="Process Units\HeaterTests.cs" />
     <Compile Include="Process Units\UnitTest1.cs" />
+    <Compile Include="Process Units\FlashTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -92,7 +92,7 @@ namespace MiniSim.Core.Flowsheeting
 
             VaporFraction = System.VariableFactory.CreateVariable("VF", "Vapor fraction (molar)", PhysicalDimension.MolarFraction);
             vfm = System.VariableFactory.CreateVariable("VFM", "Vapor fraction (mass)", PhysicalDimension.MassFraction);
-               
+
             foreach (var vari in Bulk.Variables)
                 vari.Group = "Bulk";
 
@@ -439,9 +439,20 @@ namespace MiniSim.Core.Flowsheeting
             int NC = System.Components.Count;
             for (int i = 0; i < NC; i++)
             {
-                Bulk.ComponentMolarFraction[i].SetValue(Bulk.ComponentMolarflow[i].Val() / Bulk.TotalMolarflow.Val());
-                Liquid.ComponentMolarFraction[i].SetValue(Liquid.ComponentMolarflow[i].Val() / Liquid.TotalMolarflow.Val());
-                Vapor.ComponentMolarFraction[i].SetValue(Vapor.ComponentMolarflow[i].Val() / Vapor.TotalMolarflow.Val());
+                if (Bulk.TotalMolarflow.Val() > 1e-8)
+                    Bulk.ComponentMolarFraction[i].SetValue(Bulk.ComponentMolarflow[i].Val() / Bulk.TotalMolarflow.Val());
+                else
+                    Bulk.ComponentMolarFraction[i].SetValue(0);
+
+                if (Liquid.TotalMolarflow.Val() > 1e-8)
+                    Liquid.ComponentMolarFraction[i].SetValue(Liquid.ComponentMolarflow[i].Val() / Liquid.TotalMolarflow.Val());
+                else
+                    Liquid.ComponentMolarFraction[i].SetValue(0);
+
+                if (Vapor.TotalMolarflow.Val() > 1e-8)
+                    Vapor.ComponentMolarFraction[i].SetValue(Vapor.ComponentMolarflow[i].Val() / Vapor.TotalMolarflow.Val());
+                else
+                    Vapor.ComponentMolarFraction[i].SetValue(0);
             }
         }
 
@@ -450,8 +461,8 @@ namespace MiniSim.Core.Flowsheeting
             int NC = System.Components.Count;
             for (int i = 0; i < NC; i++)
             {
-
-                Bulk.ComponentMassFraction[i].SetValue(Bulk.ComponentMassflow[i].Val() / Bulk.TotalMassflow.Val());
+                if (Bulk.TotalMassflow.Val() > 1e-8)
+                    Bulk.ComponentMassFraction[i].SetValue(Bulk.ComponentMassflow[i].Val() / Bulk.TotalMassflow.Val());
 
                 if (Liquid.TotalMassflow.Val() > 0)
                     Liquid.ComponentMassFraction[i].SetValue(Liquid.ComponentMassflow[i].Val() / Liquid.TotalMassflow.Val());
@@ -478,7 +489,7 @@ namespace MiniSim.Core.Flowsheeting
             if (TwoLiquidPhases)
                 Liquid2.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Liquid2.ComponentMolarFraction, PhaseState.Liquid));
             Vapor.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Vapor.ComponentMolarFraction, PhaseState.Vapor));
-            vfm.BindTo(Vapor.TotalMassflow / Sym.Max(1e-14, Bulk.TotalMassflow));
+            vfm.BindTo(Vapor.TotalMassflow / Sym.Max(1e-12, Bulk.TotalMassflow));
 
             for (int i = 0; i < System.Components.Count; i++)
             {
@@ -492,7 +503,7 @@ namespace MiniSim.Core.Flowsheeting
                 phase.TotalMassflow.BindTo(Sym.Sum(phase.ComponentMassflow));
                 for (int i = 0; i < NC; i++)
                 {
-                    phase.ComponentMassFraction[i].BindTo(phase.ComponentMassflow[i] / Sym.Max(1e-14, phase.TotalMassflow));
+                    phase.ComponentMassFraction[i].BindTo(phase.ComponentMassflow[i] / Sym.Max(1e-12, phase.TotalMassflow));
                     phase.ComponentMassflow[i].BindTo(phase.ComponentMolarflow[i] * Sym.Convert(System.Components[i].MolarWeight, System.VariableFactory.Internal.UnitDictionary[PhysicalDimension.MolarWeight]));
                 }
             }
@@ -501,7 +512,7 @@ namespace MiniSim.Core.Flowsheeting
 
             //Sumz=1, only when not all z are fixed
             if (!Bulk.ComponentMolarFraction.All(c => c.IsFixed))
-                AddEquationToEquationSystem(problem, Sym.Sum(Bulk.ComponentMolarFraction) - 1, "Mole Balance");
+                AddEquationToEquationSystem(problem, Sym.Sum(Bulk.ComponentMolarFraction) - 1, "Closure for Bulk Composition");
 
             foreach (var phase in _phases)
             {
@@ -547,7 +558,7 @@ namespace MiniSim.Core.Flowsheeting
             {
                 //Total mass balance
                 AddEquationToEquationSystem(problem, Bulk.TotalMolarflow - Liquid.TotalMolarflow - Vapor.TotalMolarflow, "Total Mass Balance");
-                                             
+
                 //Enthalpy Balance
                 AddEquationToEquationSystem(problem, (Sym.Par(VaporFraction * Vapor.SpecificEnthalpy + Sym.Par(1 - VaporFraction) * Liquid.SpecificEnthalpy) / 1e3 - Bulk.SpecificEnthalpy / 1e3), "Enthalpy Balance");
 

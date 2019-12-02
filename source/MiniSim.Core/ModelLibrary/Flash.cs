@@ -18,7 +18,9 @@ namespace MiniSim.Core.ModelLibrary
         private Variable T;
         private Variable Q;
         private Variable VF;
-        private Variable[] K;
+        //  private Variable[] K;
+
+        private MaterialStream equilibrium;
 
         public Flash(string name, ThermodynamicSystem system) : base(name, system)
         {
@@ -29,13 +31,15 @@ namespace MiniSim.Core.ModelLibrary
             MaterialPorts.Add(new Port<MaterialStream>("Vap", PortDirection.Out, 1) { WidthFraction = 0.5, HeightFraction = -0.25, Normal = PortNormal.Up });
             MaterialPorts.Add(new Port<MaterialStream>("Liq", PortDirection.Out, 1) { WidthFraction = 0.5, HeightFraction = 1.25, Normal = PortNormal.Down });
 
+            equilibrium = new MaterialStream("VLEQ", system);
+
             dp = system.VariableFactory.CreateVariable("DP", "Pressure Drop", PhysicalDimension.Pressure);
             p = system.VariableFactory.CreateVariable("P", "Pressure in flash", PhysicalDimension.Pressure);
             T = system.VariableFactory.CreateVariable("T", "Temperature in flash", PhysicalDimension.Temperature);
             Q = system.VariableFactory.CreateVariable("Q", "Heat Duty", PhysicalDimension.HeatFlow);
             VF = system.VariableFactory.CreateVariable("VF", "Vapor Fraction", PhysicalDimension.MolarFraction);
 
-            K = new Variable[system.Components.Count];
+            /*K = new Variable[system.Components.Count];
 
             for (int i = 0; i < system.Components.Count; i++)
             {
@@ -44,7 +48,7 @@ namespace MiniSim.Core.ModelLibrary
                 K[i].SetValue(1.2);
                 K[i].UpperBound = 1e6;
 
-            }
+            }*/
             dp.LowerBound = -1e10;
             dp.SetValue(0);
 
@@ -53,24 +57,28 @@ namespace MiniSim.Core.ModelLibrary
             AddVariable(Q);
             AddVariable(VF);
             AddVariable(dp);
-            AddVariables(K);
+
+
+            //AddVariables(equilibrium.Variables);
 
         }
 
         public override void CreateEquations(AlgebraicSystem problem)
         {
             foreach (var vari in Variables)
-            {                
+            {
                 vari.Children.Clear();
             }
+
+            equilibrium.CreateEquations(problem);
 
             int NC = System.Components.Count;
             var In = FindMaterialPort("In");
             var Vap = FindMaterialPort("Vap");
             var Liq = FindMaterialPort("Liq");
 
-          //  Vap.Streams[0].State = PhaseState.DewPoint;
-          //  Liq.Streams[0].State = PhaseState.BubblePoint;
+            //  Vap.Streams[0].State = PhaseState.DewPoint;
+            //  Liq.Streams[0].State = PhaseState.BubblePoint;
 
             for (int i = 0; i < NC; i++)
             {
@@ -79,9 +87,7 @@ namespace MiniSim.Core.ModelLibrary
                    (In.Streams[0].Bulk.ComponentMolarflow[cindex])
                         - (Vap.Streams[0].Bulk.ComponentMolarflow[cindex] + Liq.Streams[0].Bulk.ComponentMolarflow[cindex]), "Mass Balance");
 
-
             }
-
 
             AddEquationToEquationSystem(problem, (p / 1e4) - (Sym.Par(In.Streams[0].Pressure - dp) / 1e4), "Pressure drop");
 
@@ -91,17 +97,30 @@ namespace MiniSim.Core.ModelLibrary
             AddEquationToEquationSystem(problem, (Liq.Streams[0].Temperature / 1e3) - (T / 1e3), "Temperature Balance");
 
 
-            AddEquationToEquationSystem(problem, (In.Streams[0].Bulk.TotalMolarflow * VF) - (Vap.Streams[0].Bulk.TotalMolarflow), "Mass Balance");
+            
 
             AddEquationToEquationSystem(problem,
-    ((Sym.Sum(0, In.NumberOfStreams, (i) => In.Streams[i].Bulk.SpecificEnthalpy * In.Streams[i].Bulk.TotalMolarflow + Q) / 1e4))
-    - (Sym.Par(Vap.Streams[0].Bulk.SpecificEnthalpy * Vap.Streams[0].Bulk.TotalMolarflow + Liq.Streams[0].Bulk.SpecificEnthalpy * Liq.Streams[0].Bulk.TotalMolarflow) / 1e4), "Heat Balance");
+    ((In.Streams[0].Bulk.SpecificEnthalpy + Q / In.Streams[0].Bulk.TotalMolarflow)) - (Sym.Par(Vap.Streams[0].Bulk.SpecificEnthalpy * VF + Liq.Streams[0].Bulk.SpecificEnthalpy * (1 - VF))), "Heat Balance");
+
+
+
+            AddEquationToEquationSystem(problem, (equilibrium.VaporFraction) - VF, "Mass Balance");
+            AddEquationToEquationSystem(problem, (equilibrium.Pressure / 1e4) - (Sym.Par(p) / 1e4), "Pressure Balance");
+            AddEquationToEquationSystem(problem, (equilibrium.Temperature / 1e3) - (T / 1e3), "Temperature Balance");
+
 
 
             for (int i = 0; i < NC; i++)
             {
-                System.EquationFactory.EquilibriumCoefficient(System, K[i], T, p, Liq.Streams[0].Bulk.ComponentMolarFraction, Vap.Streams[0].Bulk.ComponentMolarFraction, i);
-                AddEquationToEquationSystem(problem, (Vap.Streams[0].Bulk.ComponentMolarFraction[i]) - (K[i] * Liq.Streams[0].Bulk.ComponentMolarFraction[i]), "Equilibrium");
+                AddEquationToEquationSystem(problem, Liq.Streams[0].Bulk.ComponentMolarflow[i] - equilibrium.Liquid.ComponentMolarflow[i], "Equilibrium");
+                AddEquationToEquationSystem(problem, In.Streams[0].Bulk.ComponentMolarflow[i] - equilibrium.Bulk.ComponentMolarflow[i], "Equilibrium");
+
+                //AddEquationToEquationSystem(problem, (1 - VF) * x[i] + VF * y[i] - z[i], "Component-Balance");
+
+                // AddEquationToEquationSystem(problem, In.Streams[0].Bulk.ComponentMolarflow[i] - , "Equilibrium");
+
+                // System.EquationFactory.EquilibriumCoefficient(System, K[i], T, p, Liq.Streams[0].Bulk.ComponentMolarFraction, Vap.Streams[0].Bulk.ComponentMolarFraction, i);
+                //   AddEquationToEquationSystem(problem, (Vap.Streams[0].Bulk.ComponentMolarFraction[i]) - (K[i] * Liq.Streams[0].Bulk.ComponentMolarFraction[i]), "Equilibrium");
             }
 
             base.CreateEquations(problem);
@@ -192,16 +211,20 @@ namespace MiniSim.Core.ModelLibrary
             if (!VF.IsFixed)
                 VF.SetValue(flashStream.VaporFraction.Val());
 
+            equilibrium.CopyFrom(flashStream);
             Vap.Streams[0].InitializeFromMolarFlows();
             Liq.Streams[0].InitializeFromMolarFlows();
+            equilibrium.InitializeFromMolarFlows();
 
 
 
             Vap.Streams[0].GetVariable("VF").SetValue(1);
             Liq.Streams[0].GetVariable("VF").SetValue(0);
 
-            Vap.Streams[0].FlashPZ();
-            Liq.Streams[0].FlashPZ();
+            if (Vap.Streams[0].Bulk.TotalMolarflow.Val() > 1e-8)
+                Vap.Streams[0].FlashPZ();
+            if (Liq.Streams[0].Bulk.TotalMolarflow.Val() > 1e-8)
+                Liq.Streams[0].FlashPZ();
 
             Vap.Streams[0].State = PhaseState.DewPoint;
             Liq.Streams[0].State = PhaseState.BubblePoint;

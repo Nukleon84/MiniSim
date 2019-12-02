@@ -60,8 +60,8 @@ namespace MiniSim.FlowsheetDrawing
             Graphics graph = Graphics.FromImage(image);
             graph.Clear(Color.White);
 
-            drawUnits(flowsheet, graph);
             drawStreams(flowsheet, graph);
+            drawUnits(flowsheet, graph);
             drawDecorations(flowsheet, graph);
             return image;
 
@@ -404,9 +404,9 @@ namespace MiniSim.FlowsheetDrawing
                 Color color = Color.DimGray;
                 if (Options.ShowStreamColors)
                 {
-                    byte r=0;
-                    byte g=0;
-                    byte b=0;
+                    byte r = 0;
+                    byte g = 0;
+                    byte b = 0;
 
                     var ids = stream.System.GetComponentIds();
 
@@ -434,7 +434,7 @@ namespace MiniSim.FlowsheetDrawing
 
                         r += (byte)(x * compColor.R);
                         g += (byte)(x * compColor.G);
-                        b += (byte)(x * compColor.B);                        
+                        b += (byte)(x * compColor.B);
                     }
                     color = Color.FromArgb(255, r, g, b);
                 }
@@ -464,17 +464,17 @@ namespace MiniSim.FlowsheetDrawing
                 {
                     case IconTypes.Stream:
                         DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
-                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, unit.Name, f);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, unit.Name, f, true, true);
                         break;
                     case IconTypes.Splitter:
                         DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "S", f);
-                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f, true, true);
                         break;
                     case IconTypes.Mixer:
                         DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "M", f);
-                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f, true, true);
                         break;
 
                     case IconTypes.ColumnSection:
@@ -483,14 +483,14 @@ namespace MiniSim.FlowsheetDrawing
                         DrawLowerHalfCircle(graph, unit.Icon.X, unit.Icon.Y + unit.Icon.Height - 15, 40, 30);
                         var column = unit as EquilibriumStageSection;
                         if (column != null)
-                            DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "N=" + column.NumberOfTrays, f);
+                            DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "N=" + column.NumberOfTrays, f,true,false);
 
-                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 30, unit.Name, f);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 30, unit.Name, f, true, true);
                         break;
                     case IconTypes.Heater:
                         DrawCircle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "H", f);
-                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f, true, true);
                         break;
                     case IconTypes.TwoPhaseFlash:
                         /* DrawCircle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
@@ -501,14 +501,17 @@ namespace MiniSim.FlowsheetDrawing
                         DrawUpperHalfCircle(graph, unit.Icon.X, unit.Icon.Y - 15, unit.Icon.Width, 30);
                         DrawLowerHalfCircle(graph, unit.Icon.X, unit.Icon.Y + unit.Icon.Height - 15, unit.Icon.Width, 30);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "VLE", f);
-                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 30, unit.Name, f);
+                        DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 30, unit.Name, f, true, true);
                         break;
                 }
 
-                foreach (var port in unit.MaterialPorts)
+                if (Options.ShowConnectors)
                 {
-                    if (port.IsConnected)
-                        DrawBlueCircle(graph, unit.Icon.X + unit.Icon.Width * port.WidthFraction - 5, unit.Icon.Y + unit.Icon.Height * port.HeightFraction - 5, 10, 10);
+                    foreach (var port in unit.MaterialPorts)
+                    {
+                        if (port.IsConnected)
+                            DrawConnector(graph, unit.Icon.X + unit.Icon.Width * port.WidthFraction - 3, unit.Icon.Y + unit.Icon.Height * port.HeightFraction - 3, 6, 6);
+                    }
                 }
             }
         }
@@ -537,7 +540,7 @@ namespace MiniSim.FlowsheetDrawing
         }
 
 
-        void DrawString(Graphics g, double x, double y, string drawString, Font f, bool centered = true)
+        void DrawString(Graphics g, double x, double y, string drawString, Font f, bool centered = true, bool background = true)
         {
 
             // Create font and brush.
@@ -551,14 +554,18 @@ namespace MiniSim.FlowsheetDrawing
             float xs = (float)x;
             float ys = (float)y;
 
-
+            SizeF size = MeasureString(g, f, drawString);
             if (centered)
             {
-                var size = MeasureString(g, f, drawString);
                 xs -= size.Width / 2.0f;
                 ys -= size.Height / 2.0f;
             }
 
+            if (background)
+            {
+                Brush brush = new SolidBrush(Color.FromArgb(128, 255, 255, 255));
+                g.FillRectangle(brush, new Rectangle((int)xs, (int)ys, (int)size.Width, (int)size.Height));
+            }
             // Draw string to screen.
             g.DrawString(drawString, f, drawBrush, xs, ys, drawFormat);
         }
@@ -619,17 +626,18 @@ namespace MiniSim.FlowsheetDrawing
             g.DrawRectangle(myPen, new Rectangle((int)x, (int)y, (int)width, (int)height));
         }
 
-        void DrawBlueCircle(Graphics g, double x, double y, double width, double height)
+        void DrawConnector(Graphics g, double x, double y, double width, double height)
         {
             Pen myPen = new Pen(Brushes.DimGray);
 
-            myPen.Width = 2.0f;
+            myPen.Width = 1.0f;
 
             // Set the LineJoin property
             myPen.LineJoin = System.Drawing.Drawing2D.LineJoin.Round;
 
             // Draw the rectangle
-            g.DrawEllipse(myPen, new Rectangle((int)x, (int)y, (int)width, (int)height));
+            //g.DrawEllipse(myPen, new Rectangle((int)x, (int)y, (int)width, (int)height));
+            g.DrawRectangle(myPen, new Rectangle((int)x, (int)y, (int)width, (int)height));
         }
 
         void DrawUpperHalfCircle(Graphics g, double x, double y, double width, double height)

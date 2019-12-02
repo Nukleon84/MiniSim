@@ -73,7 +73,7 @@ namespace MiniSim.Core.Flowsheeting
 
         public List<DocumentationElement> Documentation { get => _documentation; set => _documentation = value; }
 
-        public Flowsheet(string name) 
+        public Flowsheet(string name)
         {
             Name = name;
         }
@@ -138,7 +138,7 @@ namespace MiniSim.Core.Flowsheeting
             return this;
         }
 
-       
+
         public Flowsheet AddUnits(params ProcessUnit[] units)
         {
             foreach (var unit in units)
@@ -245,6 +245,32 @@ namespace MiniSim.Core.Flowsheeting
                 AddEquationToEquationSystem(problem, spec);
 
             base.CreateEquations(problem);
+        }
+
+        public Dictionary<string, double> TakeSnapshot()
+        {
+            var snapshot = new Dictionary<string, double>();
+
+            var eq = new AlgebraicSystem("Snapshot");
+            CreateEquations(eq);
+
+            foreach (var vari in eq.Variables)
+                snapshot.Add(vari.ModelName+"_"+vari.FullName, vari.Val());
+            return snapshot;
+        }
+
+        public Flowsheet RestoreSnapshot(Dictionary<string, double> snapshot)
+        {
+            var eq = new AlgebraicSystem("Snapshot");
+            CreateEquations(eq);
+            foreach (var vari in eq.Variables)
+            {
+                if (snapshot.ContainsKey(vari.ModelName + "_" + vari.FullName))
+                {
+                    vari.SetValue(snapshot[vari.ModelName + "_" + vari.FullName]);
+                }
+            }
+            return this;
         }
     }
 }
