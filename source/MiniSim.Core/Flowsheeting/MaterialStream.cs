@@ -512,7 +512,8 @@ namespace MiniSim.Core.Flowsheeting
 
             //Sumz=1, only when not all z are fixed
             if (!Bulk.ComponentMolarFraction.All(c => c.IsFixed))
-                AddEquationToEquationSystem(problem, Sym.Sum(Bulk.ComponentMolarFraction) - 1, "Closure for Bulk Composition");
+                //   AddEquationToEquationSystem(problem, Sym.Sum(Bulk.ComponentMolarFraction) - 1, "Closure for Bulk Composition");
+                AddEquationToEquationSystem(problem, Sym.Sum(Bulk.ComponentMolarflow) - Bulk.TotalMolarflow, "Closure for Bulk Composition");
 
             foreach (var phase in _phases)
             {

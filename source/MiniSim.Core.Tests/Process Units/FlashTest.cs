@@ -98,7 +98,7 @@ namespace MiniSim.Core.Tests.Process_Units
             splt.Connect("Vap", s02);
             splt.Connect("Liq", s03);
             splt.Specify("P", 1, METRIC.bar);
-            splt.Specify("VF", 0.001);
+            splt.Specify("VF", 0);
             splt.Initialize();
 
             var flowsheet = new Flowsheet("Test: Splitter");
@@ -133,7 +133,7 @@ namespace MiniSim.Core.Tests.Process_Units
             splt.Connect("Vap", s02);
             splt.Connect("Liq", s03);
             splt.Specify("P", 1, METRIC.bar);
-            splt.Specify("VF", 0.9999);
+            splt.Specify("VF",1);
             splt.Initialize();
 
             var flowsheet = new Flowsheet("Test: Splitter");
