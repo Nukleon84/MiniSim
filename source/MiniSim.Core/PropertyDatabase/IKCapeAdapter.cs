@@ -379,8 +379,11 @@ namespace MiniSim.Core.PropertyDatabase
                     break;
                 case "RACK":
                     function.Type = FunctionType.Rackett;
-                    break;
+                    break;        
                 case "KIR1":
+                    function.Type = FunctionType.ExtendedKirchhoff;
+                    break;
+                case "KIRC":
                     function.Type = FunctionType.Kirchhoff;
                     break;
                 case "SUTH":
@@ -494,12 +497,7 @@ namespace MiniSim.Core.PropertyDatabase
 
             var currentNRTL = _currentSystem.BinaryParameters.FirstOrDefault(ps => ps.Name == "NRTL");
             switch (line[1])
-            {
-                case "ALPH":
-                case "C":
-                    currentNRTL.SetParam("C", comp1, comp2, aij);
-                    currentNRTL.SetParam("C", comp2, comp1, aji);
-                    break;
+            {            
                 case "A":
                     currentNRTL.SetParam("A", comp1, comp2, aij);
                     currentNRTL.SetParam("A", comp2, comp1, aji);
@@ -508,16 +506,21 @@ namespace MiniSim.Core.PropertyDatabase
                     currentNRTL.SetParam("B", comp1, comp2, aij);
                     currentNRTL.SetParam("B", comp2, comp1, aji);
                     break;
-                case "D":
+                case "ALPH":
+                    currentNRTL.SetParam("C", comp1, comp2, aij);
+                    currentNRTL.SetParam("C", comp2, comp1, aji);
+                    break;
                 case "BETA":
                     currentNRTL.SetParam("D", comp1, comp2, aij);
                     currentNRTL.SetParam("D", comp2, comp1, aji);
                     break;
                 case "E":
+                case "C":
                     currentNRTL.SetParam("E", comp1, comp2, aij);
                     currentNRTL.SetParam("E", comp2, comp1, aji);
                     break;
                 case "F":
+                case "D":
                     currentNRTL.SetParam("F", comp1, comp2, aij);
                     currentNRTL.SetParam("F", comp2, comp1, aji);
                     break;

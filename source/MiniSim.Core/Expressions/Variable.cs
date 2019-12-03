@@ -175,6 +175,11 @@ namespace MiniSim.Core.Expressions
             IsFixed = true;
         }
 
+        public void Fix()
+        {           
+            IsFixed = true;
+        }
+
         public void Init(double value)
         {
             SetValue(value);

@@ -20,6 +20,7 @@ namespace MiniSim.Core.Thermodynamics
         PolynomialIntegrated,
         Dippr102,
         Kirchhoff,
+        ExtendedKirchhoff,
         Sutherland,
         Chemsep16,
         Chemsep16Integrated,

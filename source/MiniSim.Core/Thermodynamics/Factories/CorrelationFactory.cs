@@ -176,7 +176,14 @@ namespace MiniSim.Core.Thermodynamics
 
                         expr = (Sym.Exp(func.Coefficients[0] - func.Coefficients[1] / T + func.Coefficients[2] * Sym.Ln(T)));
                         break;
+                    }         
+                case FunctionType.ExtendedKirchhoff:
+                    {
+                        EnsureCoefficients(func.Coefficients, 5);
+                        expr = (Sym.Exp(func.Coefficients[0] + func.Coefficients[1] / T + func.Coefficients[2] * Sym.Ln(T) + func.Coefficients[3] * Sym.Pow(T, func.Coefficients[4])));
+                        break;
                     }
+
                 case FunctionType.Sutherland:
                     {
                         EnsureCoefficients(func.Coefficients, 2);
