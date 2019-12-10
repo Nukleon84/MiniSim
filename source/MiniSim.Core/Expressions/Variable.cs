@@ -74,6 +74,15 @@ namespace MiniSim.Core.Expressions
             DisplayUnit = internalUnit;
             DiffFunc = (vari) => vari == this ? 1 : 0;
         }
+        
+
+        public Variable(string name, double value, double lower, double upper, Unit internalUnit, string description) : this(name, () => value, internalUnit)
+        {
+            LowerBound = lower;
+            UpperBound = upper;
+            Description = description;
+        }
+
 
         public Variable(string name, double value, Unit internalUnit = null) : this(name, () => value, internalUnit)
         {
@@ -176,7 +185,7 @@ namespace MiniSim.Core.Expressions
         }
 
         public void Fix()
-        {           
+        {
             IsFixed = true;
         }
 

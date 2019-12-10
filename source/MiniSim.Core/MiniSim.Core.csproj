@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Expressions\Math2.cs" />
+    <Compile Include="Expressions\SymbolicExpressionParser.cs" />
     <Compile Include="Flowsheeting\Documentation\DocumentationElement.cs" />
     <Compile Include="Flowsheeting\Documentation\SpreadsheetElement.cs" />
     <Compile Include="Flowsheeting\Documentation\StreamTableElement.cs" />
@@ -53,12 +54,14 @@
     <Compile Include="Flowsheeting\HeatStream.cs" />
     <Compile Include="Flowsheeting\Port.cs" />
     <Compile Include="Flowsheeting\ProcessUnit.cs" />
+    <Compile Include="ModelLibrary\BlackBoxReactor.cs" />
     <Compile Include="ModelLibrary\ComponentSplitter.cs" />
     <Compile Include="ModelLibrary\Flash.cs" />
     <Compile Include="ModelLibrary\Heater.cs" />
     <Compile Include="ModelLibrary\Mixer.cs" />
     <Compile Include="ModelLibrary\Splitter.cs" />
     <Compile Include="ModelLibrary\TraySection.cs" />
+    <Compile Include="ModelLibrary\Valve.cs" />
     <Compile Include="Numerics\AlgebraicSystem.cs" />
     <Compile Include="Expressions\Equation.cs" />
     <Compile Include="Expressions\Expression.cs" />
@@ -132,6 +135,9 @@
   <ItemGroup>
     <PackageReference Include="CSparse">
       <Version>3.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="Sprache">
+      <Version>2.2.0</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -53,6 +53,7 @@
     <Compile Include="Expressions\Arithmetics.cs" />
     <Compile Include="Expressions\Functions.cs" />
     <Compile Include="Expressions\ForwardAD.cs" />
+    <Compile Include="Expressions\ExpressionParser.cs" />
     <Compile Include="Flashes\EthanolWater.cs" />
     <Compile Include="Numerics\NewtonTests.cs" />
     <Compile Include="Process Units\MixerTests.cs" />

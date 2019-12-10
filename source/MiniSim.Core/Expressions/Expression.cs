@@ -25,6 +25,10 @@ namespace MiniSim.Core.Expressions
             PrettyFunc = pretty;
         }
 
+        public Expression(string name) : this(name, () => 0, (v) => 0)
+        {
+        }
+
         public Expression(string name, Func<double> valueFunc, Func<Variable, double> diffFunc)
         {
             Name = name;
@@ -44,7 +48,7 @@ namespace MiniSim.Core.Expressions
             else
             {
                 if (Children.Count != 2)
-                    return Name + (Children.Count > 0 ? "(" + String.Join(",", Children.Select(c=>c.Pretty())) + ")" : "");
+                    return Name + (Children.Count > 0 ? "(" + String.Join(",", Children.Select(c => c.Pretty())) + ")" : "");
                 else
                     return Children[0].Pretty() + " " + Name + " " + Children[1].Pretty();
             }
@@ -155,7 +159,7 @@ namespace MiniSim.Core.Expressions
                 {
                     return (v.Val() * u.Diff(vari) - u.Val() * v.Diff(vari)) / Math.Pow(v.Val(), 2);
                 },
-                ()=>"\\frac{"+u.Pretty()+"}{"+v.Pretty()+"}"
+                () => "\\frac{" + u.Pretty() + "}{" + v.Pretty() + "}"
                 );
             z.AddChildren(u);
             z.AddChildren(v);
