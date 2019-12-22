@@ -56,15 +56,23 @@ namespace MiniSim.Core.Reporting
 
             _logger.Info("Stream      : " + stream.Name);
             _logger.Log("Property    : " + stream.System.Name);
+            _logger.Log("Molar Weight: " + stream.MolarWeight.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.MolarWeight.DisplayUnit);
             _logger.Log("Temperature : " + stream.Temperature.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Temperature.DisplayUnit);
             _logger.Log("Pressure    : " + stream.Pressure.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Pressure.DisplayUnit);
+            _logger.Log("Density     : " + stream.Bulk.Density.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Bulk.Density.DisplayUnit);
+            _logger.Log("Density mol.: " + stream.Bulk.DensityMolar.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Bulk.DensityMolar.DisplayUnit);
+
             _logger.Log("Vapor Frac. : " + stream.VaporFraction.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.VaporFraction.DisplayUnit);
+
             if (stream.TwoLiquidPhases)
                 _logger.Log("Phi         : " + stream.Phi.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Phi.DisplayUnit);
             _logger.Log("State       : " + stream.State);
             _logger.Log("");
             _logger.Log("Mass Flow   : " + stream.Bulk.TotalMassflow.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Bulk.TotalMassflow.DisplayUnit);
             _logger.Log("Molar Flow  : " + stream.Bulk.TotalMolarflow.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Bulk.TotalMolarflow.DisplayUnit);
+            _logger.Log("Vol. Flow   : " + stream.Bulk.TotalVolumeflow.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Bulk.TotalVolumeflow.DisplayUnit);
+
+
             _logger.Log("");
             _logger.Log("Enthalpy    : " + stream.Bulk.SpecificEnthalpy.DisplayValue.ToString("0.000").PadLeft(10) + " " + stream.Bulk.SpecificEnthalpy.DisplayUnit);
             _logger.Log("");
@@ -208,10 +216,10 @@ namespace MiniSim.Core.Reporting
                     _logger.Log(String.Format(lineFormat, "Specific Enthalpy", unitFor(PhysicalDimension.SpecificMolarEnthalpy), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "h")))));
                     _logger.Log(String.Format(lineFormat, "Phase", "", String.Join(" ", currentStreamBatch.Select(s => String.Format("{0,12}", s.State)))));
 
-                    //_logger.Log(String.Format(lineFormat, "Density", unitFor(PhysicalDimension.MolarDensity), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "rhom")))));
-                    //_logger.Log(String.Format(lineFormat, "Mass Density", unitFor(PhysicalDimension.MassDensity), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "rho")))));
-                    //_logger.Log(String.Format(lineFormat, "Volume Flow", unitFor(PhysicalDimension.VolumeFlow), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "V")))));
-                    // _logger.Log(String.Format(lineFormat, "Molar Weight", unitFor(PhysicalDimension.MolarWeight), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "MW")))));
+                    _logger.Log(String.Format(lineFormat, "Density", unitFor(PhysicalDimension.MolarDensity), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "rhom")))));
+                    _logger.Log(String.Format(lineFormat, "Mass Density", unitFor(PhysicalDimension.MassDensity), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "rho")))));
+                    _logger.Log(String.Format(lineFormat, "Volume Flow", unitFor(PhysicalDimension.VolumeFlow), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "V")))));
+                    _logger.Log(String.Format(lineFormat, "Molar Weight", unitFor(PhysicalDimension.MolarWeight), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "MW")))));
 
                     _logger.Log("");
                     _logger.Info(String.Format(lineFormat, "Total Molar Flow", unitFor(PhysicalDimension.MolarFlow), String.Join(" ", currentStreamBatch.Select(s => valueSelector(s, "n")))));
@@ -482,14 +490,14 @@ namespace MiniSim.Core.Reporting
             _logger.Log("");
             _logger.Info("Variables");
             _logger.Log("");
-            _logger.Log(String.Format("{0,-15} {1,-15} {2,-15} {3,-15} {4,15} {5,-15} {6,-15} {7,-15} {8,-25} {9,-15}", "Name", "Model", "Class", "Group", "Value", "Unit", "Min", "Max", "Dimension", "Description"));
+            _logger.Log(String.Format("{0,-15} {1,-0}{2,-0}{3,-0} {4,10} {5,-10} {6,-10} {7,-10} {8,-15} {9,-15}", "Name", "", "", "", "Value", "Unit", "Min", "Max", "Dimension", "Description"));
             foreach (var vari in unit.Variables)
             {
-                _logger.Log(String.Format("{0,-15} {1,-15} {2,-15} {3,-15} {4,15} {5,-15} {6,-15} {7,-15} {8,-25} {9,-15}",
+                _logger.Log(String.Format("{0,-15} {1,-0}{2,-0}{3,-0} {4,10} {5,-10} {6,-10} {7,-10} {8,-15} {9,-15}",
                     vari.FullName,
-                    vari.ModelName,
-                    vari.ModelClass,
-                    vari.Group,
+                    "",//vari.ModelName,
+                    "",//vari.ModelClass,
+                    "",
                     vari.DisplayValue.ToString("G6", System.Globalization.NumberFormatInfo.InvariantInfo),
                     vari.DisplayUnit.Symbol,
                     Unit.Convert(vari.InternalUnit, vari.DisplayUnit, vari.LowerBound).ToString("G6", System.Globalization.NumberFormatInfo.InvariantInfo),
