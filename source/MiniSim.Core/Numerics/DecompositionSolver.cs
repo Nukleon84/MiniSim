@@ -331,7 +331,21 @@ namespace MiniSim.Core.Numerics
                     continue;
 
                 var statusmessage = "Solving problem " + i + " of " + _decomposedNlps.Count + " (Size: " + decomposedNlp.Variables.Count + ")";
-                var status = newtonSubsolver.Solve(decomposedNlp);
+
+                var status = false;
+                if (decomposedNlp.Variables.Count == 1 
+                    && decomposedNlp.Equations[0].Expression.Name=="-" 
+                    && decomposedNlp.Equations[0].Expression.Children[0] == decomposedNlp.Variables.First())
+                {
+                    var vari = decomposedNlp.Variables.First();
+                    var eq = decomposedNlp.Equations.First();
+
+                    status = true;                    
+                    //eq.Expression.Children[1].Reset();
+                    vari.SetValue(eq.Expression.Children[1].Val());
+                }
+                else
+                    status = newtonSubsolver.Solve(decomposedNlp);
 
                 if (!status)
                 {
@@ -344,7 +358,7 @@ namespace MiniSim.Core.Numerics
                         LogError(String.Format("{2,-20} {3,-10} {4,-15} {0,20} ( {1} )", eq.Residual().ToString("G8"), eq, eq.ModelClass, eq.ModelName, eq.Group));
                     }
 
-                    if(decomposedNlp.Equations.Count==1)
+                    if (decomposedNlp.Equations.Count == 1)
                     {
                         LogError("Solved for =>" + decomposedNlp.Variables.First().WriteReport());
                         LogError("Other Variables:");

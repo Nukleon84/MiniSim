@@ -13,7 +13,7 @@ namespace MiniSim.Core.Numerics
 {
     public class BasicNewtonSolver : ISolver
     {
-        double _tolerance = 1e-6;
+        double _tolerance = 1e-7;
         int _maximumIterations = 20;
         int _currentIterations = -1;
         double _brakeFactor = 1;
