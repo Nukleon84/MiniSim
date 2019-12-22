@@ -15,7 +15,7 @@ namespace MiniSim.Core.Tests.Process_Units
     public class SplitterTest
     {
         ThermodynamicSystem sys;
-        ILogger logger;
+        StringBuilderLogger logger;
 
         [TestInitialize]
         public void Setup()
@@ -41,7 +41,7 @@ namespace MiniSim.Core.Tests.Process_Units
         [TestMethod]
         public void CanSolveBubbleSplitter()
         {
-            var solver = new BasicNewtonSolver(logger);
+            var solver = new DecompositionSolver(logger);
 
             var s01 = new MaterialStream("S01", sys);
             s01.Specify("VF", 0.01);
@@ -70,7 +70,7 @@ namespace MiniSim.Core.Tests.Process_Units
             flowsheet.AddUnits(splt);
             var status = solver.Solve(flowsheet);
 
-            
+            var log = logger.Flush();
             Assert.IsTrue(status);
         }
     }

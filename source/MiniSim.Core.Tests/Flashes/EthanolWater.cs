@@ -14,7 +14,8 @@ namespace MiniSim.Core.Tests.Flashes
     [TestClass]
     public class EthanolWater
     {
-        ILogger logger;
+        StringBuilderLogger logger;
+
         ThermodynamicSystem sys;
         ThermodynamicSystem sys2;
 
@@ -39,7 +40,7 @@ namespace MiniSim.Core.Tests.Flashes
             db.FillBIPs(sys2);
             sys2.VariableFactory.SetTemperatureLimits(273, 373);
 
-            logger = new ColoredConsoleLogger();
+            logger = new StringBuilderLogger();
         }
         [TestMethod]
         public void CanSolveEtOHWaterTwoPhaseIdeal_T()
@@ -95,7 +96,7 @@ namespace MiniSim.Core.Tests.Flashes
         [TestMethod]
         public void CanSolveEtOHWaterTwoPhaseNRTL_VF()
         {
-            var solver = new BasicNewtonSolver(logger);
+            var solver = new DecompositionSolver(logger);
 
             var s01 = new MaterialStream("S01", sys2);
             s01.Specify("VF", 0.5);
@@ -110,6 +111,7 @@ namespace MiniSim.Core.Tests.Flashes
             s01.CreateEquations(eq);
 
             var status = solver.Solve(eq);
+            var log = logger.Flush();
 
             Assert.IsTrue(status);
             Assert.AreEqual(80.184, s01.Temperature.DisplayValue, 1e-3);
@@ -121,7 +123,7 @@ namespace MiniSim.Core.Tests.Flashes
         [TestMethod]
         public void CanSolveEtOHWaterTwoPhaseIdeal_DP()
         {
-            var solver = new BasicNewtonSolver(logger);
+            var solver = new DecompositionSolver(logger);
 
             var s01 = new MaterialStream("S01", sys);
             s01.Specify("VF", 0.999);
@@ -136,6 +138,7 @@ namespace MiniSim.Core.Tests.Flashes
             s01.CreateEquations(eq);
 
             var status = solver.Solve(eq);
+            var log = logger.Flush();
 
             Assert.IsTrue(status);
             Assert.AreEqual(90.902, s01.Temperature.DisplayValue, 1e-3);
@@ -145,7 +148,7 @@ namespace MiniSim.Core.Tests.Flashes
         [TestMethod]
         public void CanSolveEtOHWaterTwoPhaseIdeal_BP()
         {
-            var solver = new BasicNewtonSolver(logger);
+            var solver = new DecompositionSolver(logger);
 
             var s01 = new MaterialStream("S01", sys);
             s01.Specify("VF", 0.001);
@@ -168,9 +171,7 @@ namespace MiniSim.Core.Tests.Flashes
 
         [TestMethod]
         public void CanSolveEtOHWaterTwoPhaseIdeal_Region()
-        {
-            var logger = new ColoredConsoleLogger();
-            var reporter = new Generator(logger);
+        {            
             var solver = new DecompositionSolver(logger);
 
             var T = new List<double>();
@@ -195,7 +196,7 @@ namespace MiniSim.Core.Tests.Flashes
                 var eq = new AlgebraicSystem("VLE");
                 s01.CreateEquations(eq);
                 var status = solver.Solve(eq);
-
+                var log = logger.Flush();
                 Assert.IsTrue(status);
                 T.Add(s01.Temperature.DisplayValue);
                 VF.Add(s01.VaporFraction.DisplayValue);

@@ -15,7 +15,7 @@ namespace MiniSim.Core.Tests.Process_Units
     public class MixerTests
     {
         ThermodynamicSystem sys;
-        ILogger logger;
+        StringBuilderLogger logger;
 
         [TestInitialize]
         public void Setup()
@@ -34,7 +34,7 @@ namespace MiniSim.Core.Tests.Process_Units
             db.FillBIPs(sys);
             sys.VariableFactory.SetTemperatureLimits(273, 373);
 
-            logger = new ColoredConsoleLogger();
+            logger = new StringBuilderLogger();
 
         }
 
@@ -42,14 +42,14 @@ namespace MiniSim.Core.Tests.Process_Units
         [TestMethod]
         public void CanSolveSubcooledMixer()
         {
-            var solver = new BasicNewtonSolver(logger);
+            var solver = new DecompositionSolver(logger);
 
             var s01 = new MaterialStream("S01", sys);
             s01.Specify("T", 25, METRIC.C);
             s01.Specify("P", 2, METRIC.bar);
             s01.Specify("n", 1, SI.kmol / SI.h);
-            s01.Specify("x[H2O]", 0.5);
-            s01.Specify("x[EtOH]", 0.5);
+            s01.Specify("x[H2O]", 1);
+            s01.Specify("x[EtOH]", 0);
             s01.Specify("x[MeOH]", 0);
             s01.InitializeFromMolarFractions();
             s01.FlashPT();
@@ -59,7 +59,7 @@ namespace MiniSim.Core.Tests.Process_Units
             s02.Specify("P", 2, METRIC.bar);
             s02.Specify("n", 1, SI.kmol / SI.h);
             s02.Specify("x[H2O]", 0);
-            s02.Specify("x[EtOH]", 0);
+            s02.Specify("x[EtOH]", 1);
             s02.Specify("x[MeOH]", 1);
             s02.InitializeFromMolarFractions();
             s02.FlashPT();
@@ -77,7 +77,7 @@ namespace MiniSim.Core.Tests.Process_Units
             flowsheet.AddMaterialStreams(s01, s02, s03);
             flowsheet.AddUnits(mixer);
             var status = solver.Solve(flowsheet);
-
+            var log = logger.Flush();
             Assert.IsTrue(status);
         }
     }

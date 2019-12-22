@@ -108,7 +108,7 @@ namespace MiniSim.Core.Tests.Process_Units
         [TestMethod]
         public void CanTestSubCooledToSuperheatedHeater()
         {
-            var solver = new BasicNewtonSolver(logger);
+            var solver = new DecompositionSolver(logger);
 
             var s01 = new MaterialStream("S01", sys);
             s01.Specify("T", 25, METRIC.C);

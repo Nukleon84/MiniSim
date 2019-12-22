@@ -24,6 +24,7 @@ namespace MiniSim.Core.Flowsheeting
         Variable vf;
         Variable phi;
         Variable vfm;
+        Variable MW;
         PhaseState _state = PhaseState.LiquidVapor;
         bool _twoLiquidPhases = false;
         Expression rachfordRice;
@@ -69,11 +70,14 @@ namespace MiniSim.Core.Flowsheeting
         public bool TwoLiquidPhases { get => _twoLiquidPhases; set => _twoLiquidPhases = value; }
         public Variable[] KL2Values { get => KL2; set => KL2 = value; }
         public Variable Phi { get => phi; set => phi = value; }
+        public Variable MolarWeight { get => MW; set => MW = value; }
         #endregion
 
         public MaterialStream(string name, ThermodynamicSystem system) : base(name, system)
         {
             Class = "MaterialStream";
+
+            int NC = System.Components.Count;
 
             Bulk = new Phase("", system);
             Liquid = new Phase("L", system);
@@ -92,11 +96,12 @@ namespace MiniSim.Core.Flowsheeting
 
             VaporFraction = System.VariableFactory.CreateVariable("VF", "Vapor fraction (molar)", PhysicalDimension.MolarFraction);
             vfm = System.VariableFactory.CreateVariable("VFM", "Vapor fraction (mass)", PhysicalDimension.MassFraction);
+            MolarWeight = system.VariableFactory.CreateVariable("MW", "Average molar weight (bulk)", PhysicalDimension.MolarWeight);
 
             foreach (var vari in Bulk.Variables)
                 vari.Group = "Bulk";
 
-            AddVariables(Temperature, Pressure, VaporFraction, vfm);
+            AddVariables(Temperature, Pressure, VaporFraction, vfm,MolarWeight);
 
             if (TwoLiquidPhases)
                 AddVariables(Phi);
@@ -115,6 +120,9 @@ namespace MiniSim.Core.Flowsheeting
                 AddVariables(phase.ComponentMolarflow);
                 AddVariables(phase.ComponentMolarFraction);
                 AddVariables(phase.SpecificEnthalpy);
+                AddVariables(phase.TotalVolumeflow);
+                AddVariables(phase.DensityMolar);
+                AddVariables(phase.Density);                
             }
 
             Liquid.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Liquid.ComponentMolarFraction, PhaseState.Liquid));
@@ -123,6 +131,8 @@ namespace MiniSim.Core.Flowsheeting
                 Liquid.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Liquid2.ComponentMolarFraction, PhaseState.Liquid));
 
             Vapor.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Vapor.ComponentMolarFraction, PhaseState.Vapor));
+
+            
 
             KValues = new Variable[System.Components.Count];
             if (TwoLiquidPhases)
@@ -156,7 +166,7 @@ namespace MiniSim.Core.Flowsheeting
                 AddVariables(KL2Values);
             }
 
-            int NC = System.Components.Count;
+          
 
             var x = Bulk.ComponentMolarFraction;
             rachfordRice = Sym.Sum(0, NC, i => x[i] * (1 - K[i]) / (1 + VaporFraction * (K[i] - 1)));
@@ -219,7 +229,7 @@ namespace MiniSim.Core.Flowsheeting
             return this;
         }
 
-
+        #region Flash Calculations
         public MaterialStream Flash()
         {
             if (Temperature.IsFixed && Pressure.IsFixed)
@@ -339,7 +349,9 @@ namespace MiniSim.Core.Flowsheeting
             InitializeMassflows();
             InitializeMassFractions();
             InitializeEnthalpies();
+            InitializeVolumeFlows();
         }
+        #endregion
 
         #region Initialization
         public MaterialStream CopyFrom(MaterialStream original)
@@ -366,8 +378,10 @@ namespace MiniSim.Core.Flowsheeting
             InitializeMolarFractions();
             InitializeMassflows();
             InitializeMassFractions();
+            InitializeVolumeFlows();
             return this;
         }
+
         public MaterialStream InitializeFromMassFlows()
         {
             int NC = System.Components.Count;
@@ -375,7 +389,6 @@ namespace MiniSim.Core.Flowsheeting
             {
                 Bulk.ComponentMolarflow[i].SetValue(Bulk.ComponentMassflow[i].Val() / Unit.Convert(System.Components[i].MolarWeight.InternalUnit, SI.kg / SI.mol, System.Components[i].MolarWeight.Val()));
             }
-
             InitializeFromMolarFlows();
             return this;
         }
@@ -389,13 +402,13 @@ namespace MiniSim.Core.Flowsheeting
             for (int i = 0; i < NC; i++)
             {
                 Bulk.ComponentMolarFraction[i].SetValue(Bulk.ComponentMolarFraction[i].Val() / SZ);
-
                 Bulk.ComponentMolarflow[i].SetValue(Bulk.ComponentMolarFraction[i].Val() * Bulk.TotalMolarflow.Val());
             }
             InitializePhaseMolarflows();
             InitializeMolarFractions();
             InitializeMassflows();
             InitializeMassFractions();
+            InitializeVolumeFlows();
             return this;
         }
 
@@ -419,7 +432,6 @@ namespace MiniSim.Core.Flowsheeting
             Liquid.TotalMolarflow.SetValue(Liquid.ComponentMolarflow.Sum(v => v.Val()));
             Vapor.TotalMolarflow.SetValue(Vapor.ComponentMolarflow.Sum(v => v.Val()));
         }
-
         void InitializeMassflows()
         {
             int NC = System.Components.Count;
@@ -433,7 +445,6 @@ namespace MiniSim.Core.Flowsheeting
             Liquid.TotalMassflow.SetValue(Liquid.ComponentMassflow.Sum(v => v.Val()));
             Vapor.TotalMassflow.SetValue(Vapor.ComponentMassflow.Sum(v => v.Val()));
         }
-
         void InitializeMolarFractions()
         {
             int NC = System.Components.Count;
@@ -455,7 +466,6 @@ namespace MiniSim.Core.Flowsheeting
                     Vapor.ComponentMolarFraction[i].SetValue(0);
             }
         }
-
         void InitializeMassFractions()
         {
             int NC = System.Components.Count;
@@ -476,14 +486,45 @@ namespace MiniSim.Core.Flowsheeting
             }
         }
 
-        #endregion
 
+        #endregion
+        void InitializeVolumeFlows()
+        {
+            // return;
+            var NC = System.Components.Count;
+
+            Vapor.DensityMolar.BindTo(System.EquationFactory.GetAverageVaporDensityExpression(System, Temperature, Pressure, Vapor.ComponentMolarFraction));
+            Liquid.DensityMolar.BindTo(1.0 / Sym.Sum(0, NC, i => 1.0 / System.EquationFactory.GetLiquidDensityExpression(System, System.Components[i], Temperature) * Liquid.ComponentMolarFraction[i]));
+
+
+            Vapor.DensityMolar.Reset();
+            Liquid.DensityMolar.Reset();
+            
+
+            Vapor.TotalVolumeflow.SetValue(Vapor.TotalMolarflow.Val() / Vapor.DensityMolar.Val());
+            Liquid.TotalVolumeflow.SetValue(Liquid.TotalMolarflow.Val() / Liquid.DensityMolar.Val());
+            Bulk.TotalVolumeflow.SetValue(Vapor.TotalVolumeflow.Val() + Liquid.TotalVolumeflow.Val());
+
+            if (Bulk.TotalVolumeflow.Val() > 1e-6)
+                Bulk.DensityMolar.SetValue(Bulk.TotalMolarflow.Val() / Bulk.TotalVolumeflow.Val());
+
+            foreach (var phase in _phases)
+            {
+                if (phase.TotalVolumeflow.Val() > 1e-6)
+                    phase.Density.SetValue(phase.TotalMassflow.Val() / phase.TotalVolumeflow.Val());
+                else
+                    phase.Density.SetValue(1);
+            }
+        }
         public override void CreateEquations(AlgebraicSystem problem)
         {
             int NC = System.Components.Count;
 
             //Binding Equations for calculated properties: These properties can not be FIXed. They can only be SPECed
             #region Calculated Variables
+
+            MolarWeight.BindTo(System.EquationFactory.GetAverageMolarWeightExpression(System, Bulk.ComponentMolarFraction.ToArray()));
+
 
             Liquid.SpecificEnthalpy.BindTo(new EnthalpyRoute(System, Temperature, Pressure, Liquid.ComponentMolarFraction, PhaseState.Liquid));
             if (TwoLiquidPhases)
@@ -515,8 +556,20 @@ namespace MiniSim.Core.Flowsheeting
                 //   AddEquationToEquationSystem(problem, Sym.Sum(Bulk.ComponentMolarFraction) - 1, "Closure for Bulk Composition");
                 AddEquationToEquationSystem(problem, Sym.Sum(Bulk.ComponentMolarflow) - Bulk.TotalMolarflow, "Closure for Bulk Composition");
 
+            Vapor.DensityMolar.BindTo(System.EquationFactory.GetAverageVaporDensityExpression(System, Temperature, Pressure, Vapor.ComponentMolarFraction));
+            Liquid.DensityMolar.BindTo(1.0 / Sym.Sum(0, NC, i => 1.0 / System.EquationFactory.GetLiquidDensityExpression(System, System.Components[i], Temperature) * Liquid.ComponentMolarFraction[i]));
+
+            AddEquationToEquationSystem(problem, Bulk.DensityMolar * Bulk.TotalVolumeflow - (Bulk.TotalMolarflow));
+
+            AddEquationToEquationSystem(problem, Vapor.TotalVolumeflow - Vapor.TotalMolarflow / Vapor.DensityMolar);
+            AddEquationToEquationSystem(problem, Liquid.TotalVolumeflow   - Liquid.TotalMolarflow/ Liquid.DensityMolar);
+
+            AddEquationToEquationSystem(problem, Bulk.TotalVolumeflow - Vapor.TotalVolumeflow - Liquid.TotalVolumeflow);
+
             foreach (var phase in _phases)
             {
+                AddEquationToEquationSystem(problem, phase.Density* phase.TotalVolumeflow - phase.TotalMassflow );
+
                 for (int i = 0; i < NC; i++)
                 {
                     AddEquationToEquationSystem(problem, phase.ComponentMolarflow[i] - phase.ComponentMolarFraction[i] * phase.TotalMolarflow);

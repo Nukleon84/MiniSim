@@ -15,7 +15,8 @@ namespace MiniSim.Core.Tests.Process_Units
     public class FlashTest
     {
         ThermodynamicSystem sys;
-        ILogger logger;
+        StringBuilderLogger logger;
+
 
         [TestInitialize]
         public void Setup()
@@ -34,6 +35,7 @@ namespace MiniSim.Core.Tests.Process_Units
             db.FillBIPs(sys);
             sys.VariableFactory.SetTemperatureLimits(273, 373);
 
+            sys.VariableFactory.SetOutputDimensions(UnitSet.CreateSI());
             logger = new StringBuilderLogger();
 
         }
@@ -98,14 +100,14 @@ namespace MiniSim.Core.Tests.Process_Units
             splt.Connect("Vap", s02);
             splt.Connect("Liq", s03);
             splt.Specify("P", 1, METRIC.bar);
-            splt.Specify("VF", 0);
+            splt.Specify("VF", 0.001);
             splt.Initialize();
 
             var flowsheet = new Flowsheet("Test: Splitter");
             flowsheet.AddMaterialStreams(s01, s02, s03);
             flowsheet.AddUnits(splt);
             var status = solver.Solve(flowsheet);
-
+            var log = logger.Flush();
 
             Assert.IsTrue(status);
         }
@@ -133,14 +135,14 @@ namespace MiniSim.Core.Tests.Process_Units
             splt.Connect("Vap", s02);
             splt.Connect("Liq", s03);
             splt.Specify("P", 1, METRIC.bar);
-            splt.Specify("VF",1);
+            splt.Specify("VF",0.999);
             splt.Initialize();
 
             var flowsheet = new Flowsheet("Test: Splitter");
             flowsheet.AddMaterialStreams(s01, s02, s03);
             flowsheet.AddUnits(splt);
             var status = solver.Solve(flowsheet);
-
+            var log = logger.Flush();
 
             Assert.IsTrue(status);
         }

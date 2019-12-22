@@ -30,6 +30,7 @@ namespace MiniSim.Core.ModelLibrary
         private Variable p2;
         private Variable KVS;
         private Variable KV;
+        private Variable Q;
 
         private Variable Position;
         private Variable Opening;
@@ -78,6 +79,8 @@ namespace MiniSim.Core.ModelLibrary
             KVS = new Variable("KVS", 10, 0, 1e6, SI.cum / SI.h / METRIC.bar, "Nominal valve coefficient");
             KV = new Variable("KV", 10, 0, 1e6, SI.cum / SI.h / METRIC.bar, "Effective valve coefficient");
 
+            Q = System.VariableFactory.CreateVariable("Q", "Volume flow", PhysicalDimension.VolumeFlow);
+
             Opening = new Variable("Open", 50, 0, 100, SI.none, "Valve opening in %");
             Position = new Variable("Pos", 50, 0, 100, SI.none, "Valve position in %");
 
@@ -90,8 +93,9 @@ namespace MiniSim.Core.ModelLibrary
             AddVariable(Position);
             AddVariable(p1);
             AddVariable(p2);
+            AddVariable(Q);
         }
-               
+
         public Valve SetCharacteristicCurve(ValveCharacteristic curveType)
         {
             CharacteristicCurve = curveType;
@@ -127,13 +131,15 @@ namespace MiniSim.Core.ModelLibrary
             if (CharacteristicCurve != ValveCharacteristic.User)
                 AddEquationToEquationSystem(problem, (Opening) - (GetCharacteristicCurve()), "Performance");
             AddEquationToEquationSystem(problem, (KV) - (Opening / 100 * KVS), "Performance");
+            AddEquationToEquationSystem(problem, Q - In.Streams[0].Bulk.TotalVolumeflow, "Performance");
 
             if (Mode == FlowMode.Compressible)
             {
-                AddEquationToEquationSystem(problem, (Sym.Convert(Out.Streams[0].Bulk.TotalVolumeflow, (SI.m ^ 3) / SI.h)) - (KV * Sym.Sqrt(Sym.Convert(dp, METRIC.bar) * Out.Streams[0].Bulk.Density / 999.07)), "Performance");
+
             }
             else if (Mode == FlowMode.Incompressible)
             {
+                AddEquationToEquationSystem(problem, (Sym.Convert(Q, (SI.m ^ 3) / SI.h)) - (KV * Sym.Sqrt(Sym.Convert(dp, METRIC.bar) * In.Streams[0].Bulk.Density / 999.07)), "Performance");
             }
             else if (Mode == FlowMode.Multiphase)
             {
@@ -164,11 +170,13 @@ namespace MiniSim.Core.ModelLibrary
             {
                 Out.Streams[0].Bulk.ComponentMolarflow[i].SetValue(Sym.Sum(0, In.NumberOfStreams, (j) => In.Streams[j].Bulk.ComponentMolarflow[i]).Val());
             }
+            Q.SetValue(In.Streams[0].Bulk.TotalVolumeflow.Val());
 
             Out.Streams[0].Temperature.SetValue(In.Streams[0].Temperature.Val());
             Out.Streams[0].Pressure.SetValue(p2.Val());
             Out.Streams[0].VaporFraction.SetValue(In.Streams[0].VaporFraction.Val());
-                       
+            Out.Streams[0].InitializeFromMolarFlows();
+
             Out.Streams[0].FlashPT();
             return this;
         }

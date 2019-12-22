@@ -41,8 +41,8 @@ namespace ConsoleTest
             s01.Specify("T", 25, METRIC.C);
             s01.Specify("P", 1, METRIC.bar);
             s01.Specify("n", 1, SI.kmol / SI.h);
-            s01.Specify("x[Wasser]", 0.5);
-            s01.Specify("x[Phenol]", 0.5);
+            s01.Specify("x[Wasser]", 1.0);
+            s01.Specify("x[Phenol]", 0.0);
             s01.InitializeFromMolarFractions();
             s01.FlashPT();
 
@@ -163,11 +163,11 @@ namespace ConsoleTest
 
         static void Main(string[] args)
         {
-            CanSolveFlashBubblePoint();
-            //FlashVLE();
+          //  CanSolveFlashBubblePoint();
+            FlashVLE();
             // Console.WriteLine("\n\n\n");
             //FlashLLE();
-            TestIKCAPE();
+           // TestIKCAPE();
             Console.WriteLine("Press any key to continue...");
             Console.ReadLine();
 
