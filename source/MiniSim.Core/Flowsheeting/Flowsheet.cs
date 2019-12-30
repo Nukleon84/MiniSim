@@ -17,7 +17,7 @@ namespace MiniSim.Core.Flowsheeting
         List<HeatStream> _heatStreams = new List<HeatStream>();
         List<Equation> _designSpecifications = new List<Equation>();
         List<DocumentationElement> _documentation = new List<DocumentationElement>();
-
+        List<Variable> _customVariables = new List<Variable>();
 
         public List<ProcessUnit> Units
         {
@@ -72,11 +72,37 @@ namespace MiniSim.Core.Flowsheeting
         }
 
         public List<DocumentationElement> Documentation { get => _documentation; set => _documentation = value; }
+        public List<Variable> CustomVariables { get => _customVariables; set => _customVariables = value; }
 
         public Flowsheet(string name)
         {
             Name = name;
         }
+
+        public Flowsheet AddCustomVariable(Variable var)
+        {
+            if (!CustomVariables.Contains(var))
+            {
+                CustomVariables.Add(var);
+            }
+            else
+                throw new InvalidOperationException($"Custom Variable {var.Name} already included in flowsheet");
+
+            return this;
+        }
+
+        public Flowsheet RemoveCustomVariable(Variable var)
+        {
+            if (CustomVariables.Contains(var))
+            {
+                CustomVariables.Remove(var);
+            }
+            else
+                throw new InvalidOperationException($"Custom Variable {var.Name} not included in flowsheet");
+
+            return this;
+        }
+
 
         public Flowsheet AddDesignSpecification(string name, Equation eq)
         {
@@ -244,6 +270,9 @@ namespace MiniSim.Core.Flowsheeting
             foreach (var spec in DesignSpecifications)
                 AddEquationToEquationSystem(problem, spec);
 
+            foreach (var vari in CustomVariables)
+                problem.Variables.Add(vari);
+
             base.CreateEquations(problem);
         }
 
@@ -255,7 +284,7 @@ namespace MiniSim.Core.Flowsheeting
             CreateEquations(eq);
 
             foreach (var vari in eq.Variables)
-                snapshot.Add(vari.ModelName+"_"+vari.FullName, vari.Val());
+                snapshot.Add(vari.ModelName + "_" + vari.FullName, vari.Val());
             return snapshot;
         }
 

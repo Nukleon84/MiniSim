@@ -156,18 +156,83 @@ namespace ConsoleTest
             flowsheet.AddMaterialStreams(s01, s02, s03);
             flowsheet.AddUnits(splt);
             var status = solver.Solve(flowsheet);
-
-
-           
         }
+
+
+        static void TestNeuralNet()
+        {
+            var a = new Variable("a", 1);
+            var b = new Variable("b", 1);
+            var z = new Variable("z", 1);
+
+            var net = new NeuralNet("NN1",  2, new int[] { 2 }, 1);
+
+            net.BindInput(0, a)
+                .BindInput(1, b)
+                .BindOutput(0, z);
+
+            var logger = new ColoredConsoleLogger();
+
+            var solver = new DecompositionSolver(logger);
+            var flowsheet = new Flowsheet("Test: Neural Net");
+                       
+            flowsheet.AddCustomVariable(z);
+            flowsheet.AddUnits(net);
+            var status = solver.Solve(flowsheet);
+
+            foreach (var sys in solver.Subproblems)
+            {
+                Console.WriteLine($"Solve equation {sys.Equations.First()} for variable {sys.Variables.First()}");
+            }
+
+            Console.WriteLine($"a={a.Val()}");
+            Console.WriteLine($"b={b.Val()}");
+            Console.WriteLine($"z={z.Val()}");
+
+            Console.WriteLine();
+
+            a.Fix(2);
+
+            status = solver.Solve(flowsheet);
+            foreach (var sys in solver.Subproblems)
+            {
+                Console.WriteLine($"Solve equation {sys.Equations.First()} for variable {sys.Variables.First()}");
+            }
+
+            Console.WriteLine($"a={a.Val()}");
+            Console.WriteLine($"b={b.Val()}");
+            Console.WriteLine($"z={z.Val()}");
+
+            flowsheet.CustomVariables.Remove(z);
+
+            Console.WriteLine();
+            z.Fix(0.9);
+            a.Unfix();
+            flowsheet.AddCustomVariable(a);
+            flowsheet.CustomVariables.Remove(z);
+            status = solver.Solve(flowsheet);
+            foreach (var sys in solver.Subproblems)
+            {
+                Console.WriteLine($"Solve equation {sys.Equations.First()} for variable {sys.Variables.First()}");
+            }
+            Console.WriteLine($"a={a.Val()}");
+            Console.WriteLine($"b={b.Val()}");
+            Console.WriteLine($"z={z.Val()}");
+
+        }
+
+
 
         static void Main(string[] args)
         {
-          //  CanSolveFlashBubblePoint();
-            FlashVLE();
+            //  CanSolveFlashBubblePoint();
+            // FlashVLE();
             // Console.WriteLine("\n\n\n");
             //FlashLLE();
-           // TestIKCAPE();
+
+            // TestIKCAPE();
+
+            TestNeuralNet();
             Console.WriteLine("Press any key to continue...");
             Console.ReadLine();
 

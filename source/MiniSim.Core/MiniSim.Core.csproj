@@ -59,6 +59,7 @@
     <Compile Include="ModelLibrary\Flash.cs" />
     <Compile Include="ModelLibrary\Heater.cs" />
     <Compile Include="ModelLibrary\Mixer.cs" />
+    <Compile Include="ModelLibrary\NeuralNet.cs" />
     <Compile Include="ModelLibrary\Splitter.cs" />
     <Compile Include="ModelLibrary\TraySection.cs" />
     <Compile Include="ModelLibrary\Valve.cs" />
