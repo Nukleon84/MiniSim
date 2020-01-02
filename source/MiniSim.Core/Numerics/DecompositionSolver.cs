@@ -181,6 +181,7 @@ namespace MiniSim.Core.Numerics
         {
             _logger = logger;
         }
+
         public string GetDebugInfo()
         {
             StringBuilder sb = new StringBuilder();
@@ -248,7 +249,6 @@ namespace MiniSim.Core.Numerics
                     currentSystem.AddEquation(ProblemData.Equations[index]);
                 }
                 lastVarCount = varcount;
-
             }
 
             _decomposedNlps.Add(currentSystem);
@@ -272,10 +272,8 @@ namespace MiniSim.Core.Numerics
         public bool Solve(Flowsheet flowsheet)
         {
             _flowsheet = flowsheet;
-
-            var eq = new AlgebraicSystem("NLAES");
+            var eq = new AlgebraicSystem(flowsheet.Name);
             _flowsheet.CreateEquations(eq);
-
             return Solve(eq);
         }
 
@@ -296,6 +294,7 @@ namespace MiniSim.Core.Numerics
                 return false;
 
             BasicNewtonSolver newtonSubsolver = null;
+            BisectionSolver bisectionSubsolver = new BisectionSolver();
 
             if (SuppressNewtonLogging)
                 newtonSubsolver = new BasicNewtonSolver(new NoLogger());
@@ -304,7 +303,6 @@ namespace MiniSim.Core.Numerics
 
             newtonSubsolver.MaximumIterations = NewtonMaxIter;
             newtonSubsolver.Tolerance = NewtonTolerance;
-
 
             if (ShowStatistics)
             {
@@ -316,8 +314,6 @@ namespace MiniSim.Core.Numerics
                 {
                     LogInfo(String.Format("{0,8} {1,8} {2,8}", group.Key, group.Count(), (group.Count() / (double)numBlocks).ToString("P2")));
                 }
-
-
             }
 
             int i = 1;
@@ -333,23 +329,34 @@ namespace MiniSim.Core.Numerics
                 var statusmessage = "Solving problem " + i + " of " + _decomposedNlps.Count + " (Size: " + decomposedNlp.Variables.Count + ")";
 
                 var status = false;
-                if (decomposedNlp.Variables.Count == 1 
-                    && decomposedNlp.Equations[0].Expression.Name=="-" 
-                    && decomposedNlp.Equations[0].Expression.Children[0] == decomposedNlp.Variables.First())
+
+                if (decomposedNlp.Variables.Count == 1)
                 {
                     var vari = decomposedNlp.Variables.First();
                     var eq = decomposedNlp.Equations.First();
-
-                    status = true;                    
-                    //eq.Expression.Children[1].Reset();
-                    vari.SetValue(eq.Expression.Children[1].Val());
+                    if (decomposedNlp.Equations[0].Expression.Name == "-" && decomposedNlp.Equations[0].Expression.Children[0] == decomposedNlp.Variables.First())
+                    {
+                        vari.SetValue(eq.Expression.Children[1].Val());
+                        status = true;
+                    }
+                    else if (decomposedNlp.Equations[0].Expression.Name == "-" && decomposedNlp.Equations[0].Expression.Children[1] == decomposedNlp.Variables.First())
+                    {
+                        vari.SetValue(eq.Expression.Children[0].Val());
+                        status = true;
+                    }
+                    else if (vari.UpperBound - vari.LowerBound < 1e2)
+                    {
+                        status = bisectionSubsolver.Solve(eq.Expression, vari, vari.LowerBound, vari.UpperBound, 100, NewtonTolerance);
+                    }
+                    else
+                        status = newtonSubsolver.Solve(decomposedNlp);
                 }
-                else
+                
+                if (!status)
                     status = newtonSubsolver.Solve(decomposedNlp);
 
                 if (!status)
                 {
-                    // PublishStatus("Solving problem " + decomposedNlp.Name + " failed!");
                     hasError = true;
                     LogError("Solving problem " + decomposedNlp.Name + " (Size: " + decomposedNlp.Variables.Count + ") failed!");
                     LogError("The 10 most problematic constraints are:");
@@ -378,7 +385,7 @@ namespace MiniSim.Core.Numerics
 
             if (!hasError)
             {
-                LogSuccess("Problem " + problem.Name + " was successfully solved (" + watch.Elapsed.TotalSeconds.ToString("0.00") + " seconds)");
+                LogSuccess("Problem " + problem.Name + " was successfully solved (" + watch.Elapsed.TotalSeconds.ToString("0.000") + " seconds)");
                 return true;
             }
             else
