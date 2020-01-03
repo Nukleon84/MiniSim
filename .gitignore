@@ -67,24 +67,14 @@ Help/
 *.psess
 *.vsp
 *.vspx
+
 source/MiniSim.Core/PropertyDatabase/ChemSep/nrtl.ipd
 source/MiniSim.Core/PropertyDatabase/ChemSep/srk.ipd
 source/MiniSim.Core/PropertyDatabase/ChemSep/uniquac.ipd
 source/ChemSepDBAdapter/ChemSepDBAdapter/Data/srk.ipd
 *.ipd
-doc/.ipynb_checkpoints/ThermoValidation-checkpoint.ipynb
-doc/.ipynb_checkpoints/SimpleFlash-checkpoint.ipynb
-doc/.ipynb_checkpoints/PressureSwingDistillation-checkpoint.ipynb
-doc/.ipynb_checkpoints/SimpleDistillation-checkpoint.ipynb
-doc/.ipynb_checkpoints/AzeotropicDistillation-checkpoint.ipynb
-doc/.ipynb_checkpoints/PressureSwingDistillation-Advanced-checkpoint.ipynb
-doc/.ipynb_checkpoints/PressureSwingDistillation-Sensitivity2D-checkpoint.ipynb
-doc/.ipynb_checkpoints/AzeotropicDistillation-Graphics-checkpoint.ipynb
-doc/.ipynb_checkpoints/InteractiveThermodynamics-checkpoint.ipynb
 *.pyc
-doc/.ipynb_checkpoints/Thermodynamics-LLE-checkpoint.ipynb
+doc/.ipynb_checkpoints/*.*
 doc/btx.dat
-doc/.ipynb_checkpoints/IKCapeImport-checkpoint.ipynb
-doc/.ipynb_checkpoints/Divided Wall Column (BTX)-checkpoint.ipynb
-doc/.ipynb_checkpoints/Cumene Process-checkpoint.ipynb
-doc/.ipynb_checkpoints/ValveExample-checkpoint.ipynb
+
+

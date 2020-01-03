@@ -75,6 +75,7 @@
     <Compile Include="Interfaces\ILogger.cs" />
     <Compile Include="Interfaces\ISolver.cs" />
     <Compile Include="Numerics\BasicNewtonSolver.cs" />
+    <Compile Include="Numerics\BisectionSolver.cs" />
     <Compile Include="Numerics\CSparseWrapper.cs" />
     <Compile Include="Numerics\DecompositionSolver.cs" />
     <Compile Include="Numerics\JacobianElement.cs" />

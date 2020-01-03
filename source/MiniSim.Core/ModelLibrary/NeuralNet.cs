@@ -24,7 +24,7 @@ namespace MiniSim.Core.ModelLibrary
             Output = new Variable("y", 1.0, SI.none);
             Input.Subscript = $"{layer},{number}";
             Output.Subscript = $"{layer},{number}";
-            ActivationFunction = 1.0 / (1 + Sym.Exp(-Input));
+            ActivationFunction = 1.0 / Sym.Par(1 + Sym.Exp(-Input));
         }
     }
 
@@ -35,14 +35,14 @@ namespace MiniSim.Core.ModelLibrary
         int _numberOfOutputs = 0;
         int _numberOfLayers = 1;
 
-        private Variable[] _inputs;
-        private Variable[] _outputs;
+        private Neuron[] _inputs;
+        private Neuron[] _outputs;
 
         public int NumberOfInputs { get => _numberOfInputs; set => _numberOfInputs = value; }
         public int NumberOfOutputs { get => _numberOfOutputs; set => _numberOfOutputs = value; }
         public int NumberOfLayers { get => _numberOfLayers; set => _numberOfLayers = value; }
-        public Variable[] Inputs { get => _inputs; set => _inputs = value; }
-        public Variable[] Outputs { get => _outputs; set => _outputs = value; }
+        public Neuron[] Inputs { get => _inputs; set => _inputs = value; }
+        public Neuron[] Outputs { get => _outputs; set => _outputs = value; }
 
         Neuron[][] _layers;
         double[][,] _weights;
@@ -59,8 +59,8 @@ namespace MiniSim.Core.ModelLibrary
             Class = "NeuralNet";
             NumberOfInputs = numInputs;
             NumberOfOutputs = numOutputs;
-            Inputs = new Variable[NumberOfInputs];
-            Outputs = new Variable[NumberOfOutputs];
+            Inputs = new Neuron[NumberOfInputs];
+            Outputs = new Neuron[NumberOfOutputs];
             NumberOfLayers = neuronsPerHiddenLayer.Length;
 
             _layers = new Neuron[NumberOfLayers][];
@@ -69,17 +69,19 @@ namespace MiniSim.Core.ModelLibrary
 
             for (int i = 0; i < NumberOfInputs; i++)
             {
-                Inputs[i] = new Variable("U", 1, SI.none);
-                Inputs[i].Subscript = $"{i}";
+                Inputs[i] = new Neuron(0, i);
+
             }
             for (int i = 0; i < NumberOfOutputs; i++)
             {
-                Outputs[i] = new Variable("Y", 1, SI.none);
-                Outputs[i].Subscript = $"{i}";
+                Outputs[i] = new Neuron(NumberOfLayers + 1, i);
             }
 
-            AddVariables(Inputs);
-            AddVariables(Outputs);
+            AddVariables(Inputs.Select(n => n.Input));
+            AddVariables(Inputs.Select(n => n.Output));
+
+            AddVariables(Outputs.Select(n => n.Input));
+            AddVariables(Outputs.Select(n => n.Output));
 
             for (int i = 0; i < NumberOfLayers; i++)
             {
@@ -95,7 +97,7 @@ namespace MiniSim.Core.ModelLibrary
 
                 for (int j = 0; j < neuronsPerHiddenLayer[i]; j++)
                 {
-                    _layers[i][j] = new Neuron(i, j);
+                    _layers[i][j] = new Neuron(i+1, j);
 
                     for (int k = 0; k < numLastOutputs; k++)
                     {
@@ -135,9 +137,14 @@ namespace MiniSim.Core.ModelLibrary
         {
             Action<Expression> EQ = (e) => AddEquationToEquationSystem(problem, e);
 
+            for (int j = 0; j < Inputs.Length; j++)
+            {                
+                EQ(Inputs[j].Output - Inputs[j].ActivationFunction);
+            }
+
             for (int j = 0; j < _layers[0].Length; j++)
             {
-                EQ(_layers[0][j].Input - Sym.Par(Sym.Sum(0, NumberOfInputs, k => _weights[0][j, k] * Inputs[k]) + _layers[0][j].Bias));
+                EQ(_layers[0][j].Input - Sym.Par(Sym.Sum(0, NumberOfInputs, k => _weights[0][j, k] * Inputs[k].Output) + _layers[0][j].Bias));
                 EQ(_layers[0][j].Output - _layers[0][j].ActivationFunction);
             }
 
@@ -152,16 +159,17 @@ namespace MiniSim.Core.ModelLibrary
 
             for (int j = 0; j < Outputs.Length; j++)
             {
-                EQ(Outputs[j] - Sym.Sum(0, NumberOfOutputs, k => _weights[NumberOfLayers - 1][j, k] * _layers[NumberOfLayers - 1][k].Output));
+                EQ(Outputs[j].Input - Sym.Sum(0, _layers[NumberOfLayers - 1].Length, k => _weights[NumberOfLayers][j, k] * _layers[NumberOfLayers - 1][k].Output));
+                EQ(Outputs[j].Output - Outputs[j].ActivationFunction);
             }
 
             foreach (var binding in _inputBindings)
             {
-                EQ(Inputs[binding.Item1] - binding.Item2);
+                EQ(Inputs[binding.Item1].Input - binding.Item2);
             }
             foreach (var binding in _outputBindings)
             {
-                EQ(Outputs[binding.Item1] - binding.Item2);
+                EQ(Outputs[binding.Item1].Output - binding.Item2);
             }
 
             base.CreateEquations(problem);

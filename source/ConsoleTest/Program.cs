@@ -165,7 +165,7 @@ namespace ConsoleTest
             var b = new Variable("b", 1);
             var z = new Variable("z", 1);
 
-            var net = new NeuralNet("NN1",  2, new int[] { 2 }, 1);
+            var net = new NeuralNet("NN1", 2, new int[] { 1 }, 1);
 
             net.BindInput(0, a)
                 .BindInput(1, b)
@@ -175,7 +175,7 @@ namespace ConsoleTest
 
             var solver = new DecompositionSolver(logger);
             var flowsheet = new Flowsheet("Test: Neural Net");
-                       
+            var reporter = new Generator(logger);
             flowsheet.AddCustomVariable(z);
             flowsheet.AddUnits(net);
             var status = solver.Solve(flowsheet);
@@ -188,7 +188,7 @@ namespace ConsoleTest
             Console.WriteLine($"a={a.Val()}");
             Console.WriteLine($"b={b.Val()}");
             Console.WriteLine($"z={z.Val()}");
-
+            reporter.Report(net);
             Console.WriteLine();
 
             a.Fix(2);
@@ -202,14 +202,17 @@ namespace ConsoleTest
             Console.WriteLine($"a={a.Val()}");
             Console.WriteLine($"b={b.Val()}");
             Console.WriteLine($"z={z.Val()}");
+            reporter.Report(net);
 
-            flowsheet.CustomVariables.Remove(z);
+            // flowsheet.CustomVariables.Remove(z);
 
             Console.WriteLine();
-            z.Fix(0.9);
-            a.Unfix();
-            flowsheet.AddCustomVariable(a);
-            flowsheet.CustomVariables.Remove(z);
+            a.Fix(-100);
+            b.Fix(-1000);
+            //z.Fix(0.9);
+            // a.Unfix();
+            // flowsheet.AddCustomVariable(a);
+            // flowsheet.CustomVariables.Remove(z);
             status = solver.Solve(flowsheet);
             foreach (var sys in solver.Subproblems)
             {
@@ -218,10 +221,86 @@ namespace ConsoleTest
             Console.WriteLine($"a={a.Val()}");
             Console.WriteLine($"b={b.Val()}");
             Console.WriteLine($"z={z.Val()}");
-
+            reporter.Report(net);
         }
 
 
+        static void TestColumnInit()
+        {
+            var db = new ChemSepAdapter();
+
+            var subst1 = db.FindComponent("Water").RenameID("H2O");
+            var subst2 = db.FindComponent("Methanol").RenameID("MeOH");
+
+            var sys = new ThermodynamicSystem("sys", "Ideal")
+                        .AddComponent(subst1)
+                        .AddComponent(subst2);
+
+            db.FillBIPs(sys);
+            sys.VariableFactory.SetTemperatureLimits(273, 373);
+
+            var logger = new ColoredConsoleLogger();
+            var solver = new DecompositionSolver(logger);
+            var reporter = new Generator(logger);
+
+            var FEED = new MaterialStream("FEED", sys);
+            FEED.Specify("VF", 0);
+            FEED.Specify("P", 1, METRIC.bar);
+            FEED.Specify("n", 1, SI.kmol / SI.h);
+            FEED.Specify("x[H2O]", 0.5);
+            FEED.Specify("x[MeOH]", 0.5);
+            FEED.InitializeFromMolarFractions();
+            FEED.FlashPZ();
+
+            var VOUT = new MaterialStream("VOUT", sys);
+            var LOUT = new MaterialStream("LOUT", sys);
+
+            var LIN = new MaterialStream("LIN", sys);
+
+            LIN.Specify("VF", 0)
+                    .Specify("P", 1, METRIC.bar)
+                    .Specify("n", 1, SI.kmol / SI.h)
+                    .Specify("x[H2O]", 0.01)
+                    .Specify("x[MeOH]", 0.99);
+            LIN.InitializeFromMolarFractions()
+                     .FlashPZ();
+
+            var VIN = new MaterialStream("VIN", sys);
+            VIN.Specify("VF", 1.0)
+                     .Specify("P", 1, METRIC.bar)
+                     .Specify("n", 1, SI.kmol / SI.h)
+                     .Specify("x[H2O]", 0.90)
+                     .Specify("x[MeOH]", 0.1);
+            VIN.InitializeFromMolarFractions()
+                     .FlashPZ();
+
+            var COL = new EquilibriumStageSection("COL", sys, 10);
+            COL.Connect("VIn", VIN)
+                        .Connect("LIn", LIN)
+                        .Connect("VOut", VOUT)
+                        .Connect("LOut", LOUT);
+            COL.ConnectFeed(FEED, 5)
+                        .MakeAdiabatic()
+                        .MakeIsobaric()
+                        .FixStageEfficiency(1.0)
+                        .Initialize();
+
+            var flowsheet = new Flowsheet("Test: Splitter");
+            flowsheet.AddMaterialStreams(FEED, LIN, VIN, VOUT, LOUT);
+            flowsheet.AddUnits(COL);
+            reporter.Report(COL,false);
+
+            var status = solver.Solve(flowsheet);
+            reporter.Report(COL,false);
+        }
+
+        static void TestBisection()
+        {
+            var x = new Variable("x", 1);
+            var f = x * x * x - 5 * x + 3;
+            var solver = new BisectionSolver();
+            var status = solver.Solve(f, x, 1.0, 2.0, 20, 1e-4);
+        }
 
         static void Main(string[] args)
         {
@@ -232,7 +311,9 @@ namespace ConsoleTest
 
             // TestIKCAPE();
 
-            TestNeuralNet();
+            //TestNeuralNet();
+            //TestBisection();
+            TestColumnInit();
             Console.WriteLine("Press any key to continue...");
             Console.ReadLine();
 
