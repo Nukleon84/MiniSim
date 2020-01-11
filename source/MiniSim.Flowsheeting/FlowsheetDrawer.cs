@@ -113,6 +113,7 @@ namespace MiniSim.FlowsheetDrawing
 
             var maxStream = flowsheet.MaterialStreams.Max(s => s.Bulk.TotalMassflow.Val());
             var minStream = flowsheet.MaterialStreams.Min(s => s.Bulk.TotalMassflow.Val());
+            Pen myPen = new Pen(Brushes.Black);
 
             foreach (var stream in flowsheet.MaterialStreams)
             {
@@ -125,7 +126,8 @@ namespace MiniSim.FlowsheetDrawing
 
                 if (source == null)
                 {
-                    DrawPointedRectangle(graph, stream.Icon.X, stream.Icon.Y, stream.Icon.Width, stream.Icon.Height);
+                   
+                    DrawPointedRectangle(graph, myPen,stream.Icon.X, stream.Icon.Y, stream.Icon.Width, stream.Icon.Height);
                     DrawString(graph, stream.Icon.X + stream.Icon.Width * 0.66 / 2.0, stream.Icon.Y + stream.Icon.Height / 2.0f, stream.Name, f);
 
                     var sinkCon = sink.MaterialPorts.FirstOrDefault(p => p.Streams.Contains(stream) && p.Direction == PortDirection.In);
@@ -140,7 +142,7 @@ namespace MiniSim.FlowsheetDrawing
 
                 if (sink == null)
                 {
-                    DrawPointedRectangle(graph, stream.Icon.X, stream.Icon.Y, stream.Icon.Width, stream.Icon.Height);
+                    DrawPointedRectangle(graph, myPen, stream.Icon.X, stream.Icon.Y, stream.Icon.Width, stream.Icon.Height);
                     DrawString(graph, stream.Icon.X + stream.Icon.Width * 0.66 / 2.0, stream.Icon.Y + stream.Icon.Height / 2.0f, stream.Name, f);
 
                     var sourceCon = source.MaterialPorts.FirstOrDefault(p => p.Streams.Contains(stream) && p.Direction == PortDirection.Out);
@@ -313,6 +315,16 @@ namespace MiniSim.FlowsheetDrawing
                     }
 
                 }
+                else if(sourceNormal == PortNormal.Left && sinkNormal == PortNormal.Left)
+                {
+                    if (relationalType == 3 || relationalType == 4)
+                    {
+                        pointList.Add(new Point((int)((endXO)), (int)startYO));                       
+
+                        centerX = (endXO) ;
+                        centerY = (startYO);
+                    }
+                }
                 else if (sourceNormal == PortNormal.Down && sinkNormal == PortNormal.Left)
                 {
                     if (relationalType == 1)
@@ -460,27 +472,33 @@ namespace MiniSim.FlowsheetDrawing
 
             foreach (var unit in flowsheet.Units)
             {
+                
+                var color = Color.FromName(unit.Icon.BorderColor);
+
+                Pen myPen = new Pen(color);
+
                 switch (unit.Icon.IconType)
                 {
+                   
                     case IconTypes.Stream:
-                        DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                        DrawPointedRectangle(graph, myPen,unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, unit.Name, f, true, true);
                         break;
                     case IconTypes.Splitter:
-                        DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                        DrawRectangle(graph, myPen, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "S", f);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f, true, true);
                         break;
                     case IconTypes.Mixer:
-                        DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                        DrawRectangle(graph, myPen, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "M", f);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f, true, true);
                         break;
 
                     case IconTypes.ColumnSection:
-                        DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
-                        DrawUpperHalfCircle(graph, unit.Icon.X, unit.Icon.Y - 15, 40, 30);
-                        DrawLowerHalfCircle(graph, unit.Icon.X, unit.Icon.Y + unit.Icon.Height - 15, 40, 30);
+                        DrawRectangle(graph, myPen, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                        DrawUpperHalfCircle(graph, myPen, unit.Icon.X, unit.Icon.Y - 15, 40, 30);
+                        DrawLowerHalfCircle(graph, myPen, unit.Icon.X, unit.Icon.Y + unit.Icon.Height - 15, 40, 30);
                         var column = unit as EquilibriumStageSection;
                         if (column != null)
                             DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "N=" + column.NumberOfTrays, f,true,false);
@@ -488,7 +506,7 @@ namespace MiniSim.FlowsheetDrawing
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 30, unit.Name, f, true, true);
                         break;
                     case IconTypes.Heater:
-                        DrawCircle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                        DrawCircle(graph, myPen, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "H", f);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f, true, true);
                         break;
@@ -497,9 +515,9 @@ namespace MiniSim.FlowsheetDrawing
                          DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "F", f);
                          DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 10, unit.Name, f);*/
 
-                        DrawRectangle(graph, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
-                        DrawUpperHalfCircle(graph, unit.Icon.X, unit.Icon.Y - 15, unit.Icon.Width, 30);
-                        DrawLowerHalfCircle(graph, unit.Icon.X, unit.Icon.Y + unit.Icon.Height - 15, unit.Icon.Width, 30);
+                        DrawRectangle(graph, myPen, unit.Icon.X, unit.Icon.Y, unit.Icon.Width, unit.Icon.Height);
+                        DrawUpperHalfCircle(graph, myPen, unit.Icon.X, unit.Icon.Y - 15, unit.Icon.Width, 30);
+                        DrawLowerHalfCircle(graph, myPen, unit.Icon.X, unit.Icon.Y + unit.Icon.Height - 15, unit.Icon.Width, 30);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height / 2.0, "VLE", f);
                         DrawString(graph, unit.Icon.X + unit.Icon.Width / 2.0, unit.Icon.Y + unit.Icon.Height + 30, unit.Name, f, true, true);
                         break;
@@ -570,9 +588,9 @@ namespace MiniSim.FlowsheetDrawing
             g.DrawString(drawString, f, drawBrush, xs, ys, drawFormat);
         }
 
-        void DrawPointedRectangle(Graphics g, double x, double y, double width, double height)
+        void DrawPointedRectangle(Graphics g, Pen myPen, double x, double y, double width, double height)
         {
-            Pen myPen = new Pen(Brushes.Black);
+            
 
             myPen.Width = 3.0f;
 
@@ -613,9 +631,9 @@ namespace MiniSim.FlowsheetDrawing
 
         }
 
-        void DrawRectangle(Graphics g, double x, double y, double width, double height)
+        void DrawRectangle(Graphics g, Pen myPen, double x, double y, double width, double height)
         {
-            Pen myPen = new Pen(Brushes.Black);
+            
 
             myPen.Width = 3.0f;
 
@@ -640,9 +658,9 @@ namespace MiniSim.FlowsheetDrawing
             g.DrawRectangle(myPen, new Rectangle((int)x, (int)y, (int)width, (int)height));
         }
 
-        void DrawUpperHalfCircle(Graphics g, double x, double y, double width, double height)
+        void DrawUpperHalfCircle(Graphics g, Pen myPen, double x, double y, double width, double height)
         {
-            Pen myPen = new Pen(Brushes.Black);
+            
 
             myPen.Width = 3.0f;
 
@@ -652,10 +670,8 @@ namespace MiniSim.FlowsheetDrawing
             // Draw the rectangle
             g.DrawArc(myPen, new Rectangle((int)x, (int)y, (int)width, (int)height), 0, -180);
         }
-        void DrawLowerHalfCircle(Graphics g, double x, double y, double width, double height)
+        void DrawLowerHalfCircle(Graphics g, Pen myPen, double x, double y, double width, double height)
         {
-            Pen myPen = new Pen(Brushes.Black);
-
             myPen.Width = 3.0f;
 
             // Set the LineJoin property
@@ -666,9 +682,8 @@ namespace MiniSim.FlowsheetDrawing
         }
 
 
-        void DrawCircle(Graphics g, double x, double y, double width, double height)
-        {
-            Pen myPen = new Pen(Brushes.Black);
+        void DrawCircle(Graphics g, Pen myPen, double x, double y, double width, double height)
+        {   
 
             myPen.Width = 3.0f;
 
