@@ -302,6 +302,48 @@ namespace ConsoleTest
             var status = solver.Solve(f, x, 1.0, 2.0, 20, 1e-4);
         }
 
+        static void TestSource()
+        {
+            var db = new ChemSepAdapter();
+
+            var subst1 = db.FindComponent("Water").RenameID("Wasser").SetL2Split(0.9);
+            var subst2 = db.FindComponent("Phenol").RenameID("Phenol").SetL2Split(0.1);
+
+            var sys = new ThermodynamicSystem("sys", "NRTL", "Default")
+                        .AddComponent(subst1)
+                        .AddComponent(subst2);
+
+            db.FillBIPs(sys);
+
+            sys.VariableFactory.SetOutputDimensions(UnitSet.CreateDefault());
+            // sys.EquilibriumMethod.AllowedPhases = AllowedPhases.VLLE;
+
+            var logger = new ColoredConsoleLogger();
+            var reporter = new Generator(logger);
+            // reporter.Report(sys);
+
+            var s01 = new MaterialStream("S01", sys);
+
+            var source = new Source("Feed", sys).Connect("Out", s01);
+            var sink = new Sink("Product", sys).Connect("In", s01);
+            source.Specify("T", 25, METRIC.C);
+            source.Specify("P", 1, METRIC.bar);
+            source.Specify("n", 1, SI.kmol / SI.h);
+            source.Specify("x[Wasser]", 1.0);
+            source.Specify("x[Phenol]", 0.0);
+            source.Initialize();
+
+            reporter.Report(s01);
+                        
+            var solver = new DecompositionSolver(logger);
+            var flowsheet = new Flowsheet("Test: Splitter");
+            flowsheet.AddMaterialStreams(s01);
+            flowsheet.AddUnits(source,sink);
+            var status = solver.Solve(flowsheet);
+            
+            reporter.Report(s01);
+        }
+
         static void Main(string[] args)
         {
             //  CanSolveFlashBubblePoint();
@@ -313,7 +355,8 @@ namespace ConsoleTest
 
             //TestNeuralNet();
             //TestBisection();
-            TestColumnInit();
+            // TestColumnInit();
+            TestSource();
             Console.WriteLine("Press any key to continue...");
             Console.ReadLine();
 

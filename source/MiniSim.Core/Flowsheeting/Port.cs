@@ -123,6 +123,7 @@ namespace MiniSim.Core.Flowsheeting
                 if (!Streams.Contains(stream))
                 {
                     IsConnected = true;
+                    
                     Streams.Add(stream);
                 }
                 else

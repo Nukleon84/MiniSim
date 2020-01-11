@@ -276,6 +276,15 @@ namespace MiniSim.Core.Flowsheeting
             base.CreateEquations(problem);
         }
 
+        public Flowsheet Initialize()
+        {
+            foreach(var unit in Units)
+            {
+                unit.Initialize();
+            }
+            return this;
+        }
+
         public Dictionary<string, double> TakeSnapshot()
         {
             var snapshot = new Dictionary<string, double>();

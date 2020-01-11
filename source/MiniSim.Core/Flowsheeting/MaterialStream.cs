@@ -31,6 +31,8 @@ namespace MiniSim.Core.Flowsheeting
 
         private Variable _temperature;
         private Variable _pressure;
+
+      
         #endregion
 
         #region Properties
@@ -71,6 +73,7 @@ namespace MiniSim.Core.Flowsheeting
         public Variable[] KL2Values { get => KL2; set => KL2 = value; }
         public Variable Phi { get => phi; set => phi = value; }
         public Variable MolarWeight { get => MW; set => MW = value; }
+      
         #endregion
 
         public MaterialStream(string name, ThermodynamicSystem system) : base(name, system)

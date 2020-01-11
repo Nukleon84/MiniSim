@@ -67,7 +67,14 @@ namespace MiniSim.Core.Flowsheeting
             {
                 var materialPort = FindMaterialPort(portName);
                 if (materialPort != null)
+                {
+                    if (materialPort.Direction == PortDirection.In)
+                        stream.Sink = this;
+                    if (materialPort.Direction == PortDirection.Out)
+                        stream.Source = this;
+
                     materialPort.Connect(stream as MaterialStream);
+                }
                 else
                     throw new InvalidOperationException("Port " + portName + " not found");
             }
