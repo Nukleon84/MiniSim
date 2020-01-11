@@ -935,10 +935,7 @@ namespace MiniSim.Core.ModelLibrary
                     feedcopy.FlashPZ();
                     _trays[j].T.SetValue(feedcopy.Temperature.Val());
                     _trays[j].TV.SetValue(feedcopy.Temperature.Val());
-                }
-              //  _trays[0].F.SetValue(0);
-               // _trays[NumberOfTrays - 1].F.SetValue(0);
-
+                }            
             }
             InitOutlets();
            
@@ -1038,7 +1035,6 @@ namespace MiniSim.Core.ModelLibrary
                     _trays[i].x[c].SetValue(1.0 / (double)NC);
                     _trays[i].y[c].SetValue(1.0 / (double)NC);
                 }
-
             }
 
             foreach (var feed in _feeds)
@@ -1059,7 +1055,6 @@ namespace MiniSim.Core.ModelLibrary
             {
                 _trays[0].z[comp].SetValue(LIn.Streams[0].Bulk.ComponentMolarFraction[comp].Val());
                 _trays[NumberOfTrays - 1].z[comp].SetValue(VIn.Streams[0].Bulk.ComponentMolarFraction[comp].Val());
-
             }
 
             var eq = new AlgebraicSystem("Column Init");
@@ -1076,19 +1071,17 @@ namespace MiniSim.Core.ModelLibrary
                     if (j < NumberOfTrays - 1)
                         Vip1 = _trays[j + 1].V * a[i] * _trays[j + 1].x[i] / Sym.Sum(0, NC, (k) => a[k] * _trays[j + 1].x[k]);
                     else
-                        Vip1 = 0;// VIn.Streams[0].Bulk.TotalMolarflow * VIn.Streams[0].Bulk.ComponentMolarFraction[i];
+                        Vip1 = 0;
 
                     if (j > 0)
                         Lim1 = _trays[j - 1].L * _trays[j - 1].x[i];
                     else
-                        Lim1 = 0;// LIn.Streams[0].Bulk.TotalMolarflow * LIn.Streams[0].Bulk.ComponentMolarFraction[i];
+                        Lim1 = 0;
 
 
                     var Mij = _trays[j].F * _trays[j].z[i] - _trays[j].V * a[i] * _trays[j].x[i] / (sumax) - _trays[j].L * _trays[j].x[i];
 
-                    eq.AddEquation(new Equation(Vip1 + Lim1 + Mij));
-                    // _trays[j].x[i].LowerBound = -1000;
-                    // _trays[j].x[i].UpperBound = +1000;
+                    eq.AddEquation(new Equation(Vip1 + Lim1 + Mij));                  
                 }
                 eq.AddVariables(_trays[j].x);
             }
@@ -1112,9 +1105,7 @@ namespace MiniSim.Core.ModelLibrary
                     feedcopy.FlashPZ();
                     _trays[j].T.SetValue(feedcopy.Temperature.Val());
                     _trays[j].TV.SetValue(feedcopy.Temperature.Val());
-                }
-               // _trays[0].F.SetValue(0);
-               // _trays[NumberOfTrays - 1].F.SetValue(0);
+                }              
 
             }
             InitOutlets();
