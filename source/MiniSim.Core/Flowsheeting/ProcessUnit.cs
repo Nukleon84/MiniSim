@@ -178,6 +178,10 @@ namespace MiniSim.Core.Flowsheeting
             return this;
         }
 
+        public List<Port<MaterialStream>> GetMaterialOutPorts()
+        {
+            return MaterialPorts.Where(p => p.Direction == PortDirection.Out).ToList();
+        }
 
         public Port<MaterialStream> FindMaterialPort(string portName)
         {

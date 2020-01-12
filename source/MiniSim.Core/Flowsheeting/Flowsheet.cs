@@ -248,6 +248,27 @@ namespace MiniSim.Core.Flowsheeting
                 AddDesignSpecification(spec);
             return this;
         }
+
+        public List<ProcessUnit> GetSuccessorUnits(ProcessUnit  unit)
+        {
+            return MaterialStreams.Where(s => s.Source == unit && s.Sink != null).Select(s => s.Sink).ToList(); 
+        }
+
+        public List<ProcessUnit> GetSuccessorUnits(string name)
+        {
+            var successors = new List<ProcessUnit>();
+            var unit = GetUnit(name);
+
+            if (unit == null)
+                throw new ArgumentOutOfRangeException($"Unit {name} not found in flowsheet");
+                       
+            return GetSuccessorUnits(unit);
+        }
+        public List<ProcessUnit> GetUnitsByModelClass(string modelClass)
+        {
+            return Units.Where(u => u.Class == modelClass).ToList();
+        }
+
         public ProcessUnit GetUnit(string name)
         {
             return Units.FirstOrDefault(v => v.Name == name);
@@ -278,7 +299,7 @@ namespace MiniSim.Core.Flowsheeting
 
         public Flowsheet Initialize()
         {
-            foreach(var unit in Units)
+            foreach (var unit in Units)
             {
                 unit.Initialize();
             }
