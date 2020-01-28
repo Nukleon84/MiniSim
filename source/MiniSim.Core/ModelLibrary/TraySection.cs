@@ -410,7 +410,7 @@ namespace MiniSim.Core.ModelLibrary
                         if (i == 0)
                             AddEquationToEquationSystem(problem, ((_trays[i + 1].V * _trays[i + 1].y[comp] + tray.F * tray.z[comp])) - (nij));
                         else if (i == NumberOfTrays - 1)
-                            AddEquationToEquationSystem(problem, (( _trays[i - 1].L * _trays[i - 1].x[comp] + tray.F * tray.z[comp])) - (nij));
+                            AddEquationToEquationSystem(problem, ((_trays[i - 1].L * _trays[i - 1].x[comp] + tray.F * tray.z[comp])) - (nij));
                         else
                             AddEquationToEquationSystem(problem, ((_trays[i + 1].V * _trays[i + 1].y[comp] + _trays[i - 1].L * _trays[i - 1].x[comp] + tray.F * tray.z[comp])) - (nij));
                     }
@@ -437,7 +437,7 @@ namespace MiniSim.Core.ModelLibrary
                 if (i == 0)
                     AddEquationToEquationSystem(problem, (Sym.Par(_trays[i + 1].V * _trays[i + 1].HV + tray.F * tray.HF + tray.Q) / hscale) - (Hi));
                 else if (i == NumberOfTrays - 1)
-                    AddEquationToEquationSystem(problem, (Sym.Par( _trays[i - 1].L * _trays[i - 1].HL + tray.F * tray.HF + tray.Q) / hscale) - (Hi));
+                    AddEquationToEquationSystem(problem, (Sym.Par(_trays[i - 1].L * _trays[i - 1].HL + tray.F * tray.HF + tray.Q) / hscale) - (Hi));
                 else
                     AddEquationToEquationSystem(problem, (Sym.Par(_trays[i + 1].V * _trays[i + 1].HV + _trays[i - 1].L * _trays[i - 1].HL + tray.F * tray.HF + tray.Q) / hscale) - (Hi));
 
@@ -566,7 +566,7 @@ namespace MiniSim.Core.ModelLibrary
             _trays[0].HF.SetValue(LIn.Bulk.SpecificEnthalpy.Val());
             _trays[0].F.SetValue(LIn.Bulk.TotalMolarflow.Val());
 
-            _trays[NumberOfTrays-1].HF.Unfix();
+            _trays[NumberOfTrays - 1].HF.Unfix();
             _trays[NumberOfTrays - 1].F.Unfix();
             _trays[NumberOfTrays - 1].HF.IsConstant = false;
             _trays[NumberOfTrays - 1].F.IsConstant = false;
@@ -711,7 +711,7 @@ namespace MiniSim.Core.ModelLibrary
 
         void InitAbsorber()
         {
-           
+
             int NC = System.Components.Count;
             var VIn = FindMaterialPort("VIn");
             var LIn = FindMaterialPort("LIn");
@@ -816,12 +816,12 @@ namespace MiniSim.Core.ModelLibrary
                     _trays[j].T.SetValue(feedcopy.Temperature.Val());
                     _trays[j].TV.SetValue(feedcopy.Temperature.Val());
                 }
-              //  _trays[0].F.SetValue(0);
-              //  _trays[NumberOfTrays - 1].F.SetValue(0);
+                //  _trays[0].F.SetValue(0);
+                //  _trays[NumberOfTrays - 1].F.SetValue(0);
 
             }
             InitOutlets();
-           
+
         }
 
         void InitRectifaction()
@@ -847,10 +847,34 @@ namespace MiniSim.Core.ModelLibrary
                 a[i] = feedcopy.KValues[i].Val() / Kmin;
             }
 
-            var F = In.Streams[0].Bulk.TotalMolarflow.Val();            
+            var F = In.Streams[0].Bulk.TotalMolarflow.Val();
             var V = VIn.Streams[0].Bulk.TotalMolarflow.Val();
             var Lr = LIn.Streams[0].Bulk.TotalMolarflow.Val();
             var Ls = Lr + F;
+
+
+            //If Vapor or liquid return flow is not initialized, fill it with a trivial starting value so that the algorithm can calculate at least something
+            if (V < 1e-6)
+            {
+                var D = F * 0.5;
+                V = (1 + 1) * D;              
+
+                VIn.Streams[0].CopyFrom(feedcopy);
+                feedcopy.VaporFraction.SetValue(1);
+                feedcopy.FlashPZ();
+            }
+
+            if (Lr < 1e-6)
+            {
+                var D = F * 0.5;
+                Lr = 1 * D;
+                Ls = Lr + F;
+
+                LIn.Streams[0].CopyFrom(feedcopy);
+                feedcopy.VaporFraction.SetValue(0);
+                feedcopy.FlashPZ();
+            }
+
 
             for (int i = 0; i < NumberOfTrays; i++)
             {
@@ -911,7 +935,7 @@ namespace MiniSim.Core.ModelLibrary
 
                     var Mij = _trays[j].F * _trays[j].z[i] - _trays[j].V * a[i] * _trays[j].x[i] / (sumax) - _trays[j].L * _trays[j].x[i];
 
-                    eq.AddEquation(new Equation(Vip1 + Lim1 + Mij));                   
+                    eq.AddEquation(new Equation(Vip1 + Lim1 + Mij));
                 }
                 eq.AddVariables(_trays[j].x);
             }
@@ -935,10 +959,10 @@ namespace MiniSim.Core.ModelLibrary
                     feedcopy.FlashPZ();
                     _trays[j].T.SetValue(feedcopy.Temperature.Val());
                     _trays[j].TV.SetValue(feedcopy.Temperature.Val());
-                }            
+                }
             }
             InitOutlets();
-           
+
         }
 
         void InitOutlets()
@@ -1081,7 +1105,7 @@ namespace MiniSim.Core.ModelLibrary
 
                     var Mij = _trays[j].F * _trays[j].z[i] - _trays[j].V * a[i] * _trays[j].x[i] / (sumax) - _trays[j].L * _trays[j].x[i];
 
-                    eq.AddEquation(new Equation(Vip1 + Lim1 + Mij));                  
+                    eq.AddEquation(new Equation(Vip1 + Lim1 + Mij));
                 }
                 eq.AddVariables(_trays[j].x);
             }
@@ -1105,7 +1129,7 @@ namespace MiniSim.Core.ModelLibrary
                     feedcopy.FlashPZ();
                     _trays[j].T.SetValue(feedcopy.Temperature.Val());
                     _trays[j].TV.SetValue(feedcopy.Temperature.Val());
-                }              
+                }
 
             }
             InitOutlets();

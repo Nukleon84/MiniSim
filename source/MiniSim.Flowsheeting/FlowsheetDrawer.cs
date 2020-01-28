@@ -295,6 +295,16 @@ namespace MiniSim.FlowsheetDrawing
                         centerX = (startXO);
                         centerY = (endYO);
                     }
+
+                    if (relationalType == 2)
+                    {
+                        pointList.Add(new Point((int)endXO, (int)startYO));
+// pointList.Add(new Point((int)startXO, (int)endYO));
+
+                        centerX = (endXO);
+                        centerY = (startYO);
+                    }
+
                 }
                 else if (sourceNormal == PortNormal.Up && sinkNormal == PortNormal.Right)
                 {
