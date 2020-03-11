@@ -1,0 +1,161 @@
+﻿<Window x:Class="MiniSim.Creator.Views.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MiniSim.Creator.Views"
+         xmlns:cal="http://www.caliburnproject.org"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="MiniSim Creator" Height="450" Width="800"
+        WindowState="Maximized"
+        WindowStyle="SingleBorderWindow"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal" 
+        TextOptions.TextRenderingMode="Auto"        
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        
+        >
+    <materialDesign:DialogHost Identifier="RootDialog">
+        <materialDesign:DrawerHost IsLeftDrawerOpen="{Binding ElementName=MenuToggleButton, Path=IsChecked}">
+            <materialDesign:DrawerHost.LeftDrawerContent>
+                <DockPanel MinWidth="212">
+                    <ToggleButton Style="{StaticResource MaterialDesignHamburgerToggleButton}" 
+                                  DockPanel.Dock="Top"
+                                  HorizontalAlignment="Right" Margin="16"
+                                  IsChecked="{Binding ElementName=MenuToggleButton, Path=IsChecked, Mode=TwoWay}" />
+                    <Menu>
+                        <Menu.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel></StackPanel>
+                            </ItemsPanelTemplate>
+                        </Menu.ItemsPanel>
+                        <MenuItem Header="New" >
+                            <MenuItem.Icon>
+                                <materialDesign:PackIcon Kind="Create" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Save" >
+                            <MenuItem.Icon>
+                                <materialDesign:PackIcon Kind="ContentSave" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Save As" >
+                            <MenuItem.Icon>
+                                <materialDesign:PackIcon Kind="ContentSaveAlert" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Open" >
+                            <MenuItem.Icon>
+                                <materialDesign:PackIcon Kind="FolderOpen" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator></Separator>
+                        <MenuItem Header="Flowsheets" >
+                            <MenuItem.Icon>
+                                <materialDesign:PackIcon Kind="BookOpenPageVariant" />
+                            </MenuItem.Icon>                          
+                        </MenuItem>
+                        <MenuItem Header="Property Blocks" >
+                            <MenuItem.Icon>
+                                <materialDesign:PackIcon Kind="Beaker" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Settings" >
+                            <MenuItem.Icon>
+                                <materialDesign:PackIcon Kind="Cog" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator></Separator>
+                        <MenuItem Header="Close" x:Name="Shutdown" cal:Message.Attach="[Event Click] = [Action Shutdown()]"  >
+                            <MenuItem.Icon>
+                                <materialDesign:PackIcon Kind="ExitToApp" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </Menu>
+                </DockPanel>
+            </materialDesign:DrawerHost.LeftDrawerContent>
+            <DockPanel>
+                <StatusBar DockPanel.Dock="Bottom">
+                    <StatusBarItem HorizontalAlignment="Left">
+                        <WrapPanel>
+                            <TextBlock Text="Property Block" Foreground="DimGray" VerticalAlignment="Center"></TextBlock>
+                            <ComboBox Name="PropertyBlocks" Width="150" SelectedItem="{Binding CurrentPropertyBlock}" ItemsSource="{Binding PropertyBlocks}"></ComboBox>
+
+                            <TextBlock Text="Flowsheet" Foreground="DimGray" VerticalAlignment="Center" Margin="15,0,0,0"></TextBlock>
+                            <ComboBox Name="Flowsheets" Width="150" DisplayMemberPath="Name" SelectedItem="{Binding CurrentFlowsheet}" ItemsSource="{Binding AvailableFlowsheets}" ></ComboBox>
+                        </WrapPanel>
+                    </StatusBarItem>
+                    <StatusBarItem HorizontalAlignment="Right">
+                        <WrapPanel>
+                            <TextBlock Text="Units" Margin="0,0,5,0" Foreground="DimGray"></TextBlock>
+                            <TextBlock x:Name="NumberOfUnits" Margin="0,0,5,0"></TextBlock>
+                            <TextBlock Text="Streams" Margin="0,0,5,0" Foreground="DimGray"></TextBlock>
+                            <TextBlock x:Name="NumberOfStreams" Margin="0,0,5,0"></TextBlock>
+                            <TextBlock Text="Eq" Margin="0,0,5,0" Foreground="DimGray"></TextBlock>
+                            <TextBlock x:Name="NumberOfEquations" Margin="0,0,5,0"></TextBlock>
+                            <TextBlock Text="Var" Margin="0,0,5,0" Foreground="DimGray"></TextBlock>
+                            <TextBlock x:Name="NumberOfVariables" Margin="0,0,5,0"></TextBlock>
+                            <TextBlock Text="Delta" Margin="0,0,5,0" Foreground="DimGray"></TextBlock>
+                            <TextBlock x:Name="NumberOfDOF" Margin="0,0,5,0"></TextBlock>
+                            <TextBlock Margin="5,0,10,0" x:Name="SimulationStatusMessage" Foreground="White" Background="{Binding SimulationStatusColor}" VerticalAlignment="Center" Padding="5,0,5,0"></TextBlock>
+                            <ProgressBar Width="100" Minimum="0" Maximum="100" Value="{Binding CurrentProgress}"></ProgressBar>
+                        </WrapPanel>
+                    </StatusBarItem>
+                </StatusBar>
+                <Grid>
+
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <materialDesign:Card Padding="2" Width="1800" Height="900" Margin="10,30,10,10"  >
+                            <ContentControl x:Name="CurrentCanvas" ></ContentControl>
+                        </materialDesign:Card>
+                        
+                        
+                    </ScrollViewer>
+                    <!--<Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" CornerRadius="10" Background="White" BorderBrush="LightGray" BorderThickness="1">-->
+                    <StackPanel Orientation="Horizontal" Margin="10,3,3,3" VerticalAlignment="Top" >
+                            <ToggleButton HorizontalAlignment="Left" VerticalAlignment="Top" Style="{StaticResource MaterialDesignHamburgerToggleButton}" IsChecked="False" x:Name="MenuToggleButton"/>
+                            <TextBox VerticalAlignment="Center" Margin="5,0,0,0" Width="180"  x:Name="SearchText" materialDesign:HintAssist.Hint="Search project">
+                            </TextBox>
+                            <Button Style="{StaticResource MaterialDesignFlatButton}">
+                                <Button.Content>
+                                    <materialDesign:PackIcon Kind="Search" />
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+                    <!--</Border>-->
+
+                    <materialDesign:PopupBox HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False">
+                        <UniformGrid Columns="3" Margin="20">
+                            <Button Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                                      Margin="4" HorizontalAlignment="Left" Padding="2" ToolTip="Check">
+                                <materialDesign:PackIcon Kind="Check" HorizontalAlignment="Center" Width="20" Height="20" />
+                            </Button>
+                            <Button Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                                      Margin="4" HorizontalAlignment="Left" Padding="2" ToolTip="Init">
+                                <materialDesign:PackIcon Kind="Rewind" HorizontalAlignment="Center" Width="20" Height="20" />
+                            </Button>
+                            <Button Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}"
+                                      Margin="4" HorizontalAlignment="Left" Padding="2" ToolTip="Run">
+                                <materialDesign:PackIcon Kind="Play" HorizontalAlignment="Center" Width="20" Height="20" />
+                            </Button>
+                            <Button Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                                      Margin="4" HorizontalAlignment="Left" Padding="2" ToolTip="Show/Hide Grid">
+                                <materialDesign:PackIcon Kind="Grid" HorizontalAlignment="Center" Width="20" Height="20" />
+                            </Button>
+                            <Button Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                                      Margin="4" HorizontalAlignment="Left" Padding="2" ToolTip="Show/Hide Log">
+                                <materialDesign:PackIcon Kind="FormatListBulleted" HorizontalAlignment="Center" Width="20" Height="20" />
+                            </Button>
+
+                        </UniformGrid>
+                    </materialDesign:PopupBox>
+
+                </Grid>
+            </DockPanel>
+        </materialDesign:DrawerHost>
+    </materialDesign:DialogHost>
+</Window>

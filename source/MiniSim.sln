@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniSim.FlowsheetDrawing", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "ConsoleTest\ConsoleTest.csproj", "{6A163560-195A-4EF9-9FB3-1568992FF0E4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniSim.Creator", "MiniSim.Creator\MiniSim.Creator.csproj", "{12AEB2E8-CF1D-42B5-B04B-726AD97CB8B9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{6A163560-195A-4EF9-9FB3-1568992FF0E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A163560-195A-4EF9-9FB3-1568992FF0E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A163560-195A-4EF9-9FB3-1568992FF0E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12AEB2E8-CF1D-42B5-B04B-726AD97CB8B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12AEB2E8-CF1D-42B5-B04B-726AD97CB8B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12AEB2E8-CF1D-42B5-B04B-726AD97CB8B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12AEB2E8-CF1D-42B5-B04B-726AD97CB8B9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -48,6 +54,7 @@ Global
 		{DAFE92A4-B72F-4CB2-AD44-33D05AFF6CAA} = {3AD7055D-7FD0-4973-9EF7-92BB249A0BC5}
 		{72EE343B-437F-426D-9623-D82B50926C17} = {400A7FBB-AECD-48D2-B46D-86B83F515D74}
 		{6A163560-195A-4EF9-9FB3-1568992FF0E4} = {AF61FEBD-DB15-48EA-BB99-B9B2D87F6470}
+		{12AEB2E8-CF1D-42B5-B04B-726AD97CB8B9} = {AF61FEBD-DB15-48EA-BB99-B9B2D87F6470}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D6F657BA-3F3C-4829-880F-53642A1D0163}
