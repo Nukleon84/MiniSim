@@ -56,6 +56,11 @@ namespace MiniSim.Core.Expressions
             {
                 return Unit.Convert(_internalUnit, DisplayUnit, Val());
             }
+            set
+            {
+                var newValueInInteral = Unit.Convert(DisplayUnit, _internalUnit, value);
+                SetValue(newValueInInteral);
+            }
         }
 
         public double UpperBound { get => _upperBound; set => _upperBound = value; }

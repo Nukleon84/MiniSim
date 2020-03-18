@@ -82,18 +82,33 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DebugHelper\PropertyBlockFactory.cs" />
     <Compile Include="DebugHelper\VisualFlowsheetFactory.cs" />
     <Compile Include="Flowsheeting\Connection.cs" />
     <Compile Include="Flowsheeting\Connector.cs" />
     <Compile Include="Flowsheeting\DrawableItem.cs" />
     <Compile Include="Flowsheeting\VisualFlowsheet.cs" />
     <Compile Include="Flowsheeting\VisualUnit.cs" />
+    <Compile Include="Messaging\BaseMessage.cs" />
+    <Compile Include="Messaging\BroadcastEphemeralMessage.cs" />
+    <Compile Include="Messaging\RecountFlowsheetElementsMessage.cs" />
+    <Compile Include="Messaging\ShowReportMessage.cs" />
+    <Compile Include="Messaging\UpdateEquationStatusMessage.cs" />
+    <Compile Include="Messaging\UpdateProgressBarMessage.cs" />
+    <Compile Include="Messaging\UpdateSolverStatusMessage.cs" />
     <Compile Include="ViewModels\CanvasViewModel.cs" />
+    <Compile Include="ViewModels\RelayCommand.cs" />
     <Compile Include="Views\CanvasView.xaml.cs">
       <DependentUpon>CanvasView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\EditFlowsheetItemDialog.xaml.cs">
+      <DependentUpon>EditFlowsheetItemDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ShellView.xaml.cs">
       <DependentUpon>ShellView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ShowLogDialog.xaml.cs">
+      <DependentUpon>ShowLogDialog.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -138,7 +153,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\EditFlowsheetItemDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\ShellView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ShowLogDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

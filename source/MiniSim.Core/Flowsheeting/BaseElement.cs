@@ -16,15 +16,14 @@ namespace MiniSim.Core.Flowsheeting
         string _description;
         string _class;
         List<Variable> _variables = new List<Variable>();
+        List<Variable> _parameters = new List<Variable>();
         ThermodynamicSystem _system;
 
         public string Description { get => _description; set => _description = value; }
         public string Class { get => _class; set => _class = value; }
         public List<Variable> Variables { get => _variables; set => _variables = value; }
         public ThermodynamicSystem System { get => _system; protected set => _system = value; }
-
-
-
+        public List<Variable> Parameters { get => _parameters; set => _parameters = value; }
 
         public virtual void CreateEquations(AlgebraicSystem problem)
         {

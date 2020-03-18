@@ -49,7 +49,7 @@ namespace MiniSim.Core.ModelLibrary
                 K[i].UpperBound = 1e6;
 
             }*/
-            dp.LowerBound = -1e10;
+            dp.LowerBound = -1e8;
             dp.SetValue(0);
 
             AddVariable(p);
@@ -58,9 +58,22 @@ namespace MiniSim.Core.ModelLibrary
             AddVariable(VF);
             AddVariable(dp);
 
+            Parameters.Add(T);            
+            Parameters.Add(VF);
+            Parameters.Add(Q);
+            Parameters.Add(p);
+            Parameters.Add(dp);
 
             //AddVariables(equilibrium.Variables);
 
+        }
+
+        public override ProcessUnit ApplyDefaultSpecifications()
+        {
+            VF.Fix(0.2);
+            dp.Fix();
+
+            return this;
         }
 
         public override void CreateEquations(AlgebraicSystem problem)

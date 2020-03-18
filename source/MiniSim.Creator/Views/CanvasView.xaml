@@ -5,12 +5,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MiniSim.Creator.Views"
               xmlns:cal="http://www.caliburnproject.org"
+              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"  
+             >
+
    
+    
+
     <UserControl.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>                
+            <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/MiniSim.Creator;component/Resources/FlowsheetIcons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -26,8 +31,14 @@
             </VisualBrush>
         </ResourceDictionary>
     </UserControl.Resources>
-    
-    <Grid x:Name="theGrid">       
+
+    <Grid x:Name="theGrid" Tag="{Binding DataContext}"  Focusable="True"  cal:Message.Attach=
+              "[Event MouseLeftButtonDown] = [Action MouseDownOnGrid($source, $eventArgs)];
+               [Event PreviewMouseLeftButtonUp] = [Action MouseUpOnGrid($source, $eventArgs)];
+               [Event MouseMove] = [Action MouseMoveOnGrid($source, $eventArgs)] ;                      
+               [Key Up] = [ShiftSelectedUnitsUp]; 
+               [Gesture Ctrl+A] = [Action SelectAll()]"
+          >
         <Grid.Style>
             <Style  TargetType="{x:Type Grid}">
                 <Setter Property="Background"  Value="White"></Setter>
@@ -40,6 +51,33 @@
             </Style>
         </Grid.Style>
 
+        <Grid.ContextMenu>
+            <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" cal:Message.Attach="[Event Opened]=[Action ContextMenuOpening($source,$eventArgs)]">
+                <MenuItem Header="Rebuild"  ToolTip="Rebuild flowsheet model and connections" cal:Message.Attach="Rebuild($executionContext)"></MenuItem>
+                <MenuItem Header="Initialize" ToolTip="Perform local initialization routine on each unit" cal:Message.Attach="Initialize($executionContext)"></MenuItem>
+                <MenuItem Header="Solve" ToolTip="Solve the equation system" cal:Message.Attach="Solve($executionContext)"></MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="Source" Name="AddSource" cal:Message.Attach="AddItem($source,$eventArgs)"></MenuItem>
+                <MenuItem Header="Sink"  Name="AddSink" cal:Message.Attach="AddItem($source,$eventArgs)"></MenuItem>
+                <MenuItem Header="Mixer"  Name="AddMixer" cal:Message.Attach="AddItem($source,$eventArgs)"></MenuItem>
+                <MenuItem Header="Splitter"  Name="AddSplitter" cal:Message.Attach="AddItem($source,$eventArgs)"></MenuItem>
+                <MenuItem Header="Heater"  Name="AddHeater" cal:Message.Attach="AddItem($source,$eventArgs)"></MenuItem>
+                <MenuItem Header="Flash"  Name="AddFlash" cal:Message.Attach="AddItem($source,$eventArgs)"></MenuItem>
+                <MenuItem Header="Column"  Name="AddColumn" cal:Message.Attach="AddItem($source,$eventArgs)"></MenuItem>
+                <MenuItem Header="Rectification"  Name="AddRectification" cal:Message.Attach="AddItem($source,$eventArgs)"></MenuItem>
+                <Separator>
+                    
+                </Separator>
+                <MenuItem Header="Format">
+                    <MenuItem Header="Show Grid" IsCheckable="True" IsChecked="{Binding ShowGrid}"></MenuItem>
+                    <MenuItem Header="Snap to Grid" IsCheckable="True" IsChecked="{Binding SnapGrid}"></MenuItem>
+                    <MenuItem Header="Temperature" IsCheckable="True" IsChecked="{Binding ShowTemperature}"></MenuItem>
+                    <MenuItem Header="Pressure" IsCheckable="True" IsChecked="{Binding ShowPressure}"></MenuItem>
+                    <MenuItem Header="Vapor Fraction" IsCheckable="True" IsChecked="{Binding ShowVapourFraction}"></MenuItem>
+                    <MenuItem Header="Mass Flow" IsCheckable="True" IsChecked="{Binding ShowMassflow}"></MenuItem>
+                </MenuItem>
+            </ContextMenu>
+        </Grid.ContextMenu>
         <ItemsControl Name="connectionCanvas" ItemsSource="{Binding Path=Connections}" >
 
             <ItemsControl.ItemsPanel>
@@ -51,30 +89,36 @@
                 <DataTemplate>
                     <Canvas>
                         <Polyline Stroke="White" StrokeThickness="10" Points="{Binding Path.Points}" StrokeEndLineCap="Triangle" StrokeStartLineCap="Round"></Polyline>
-                        <Polyline Name="streamLine" Stroke="{Binding Color}" StrokeThickness="{Binding Thickness}" StrokeDashArray="{Binding DashArray}" Points="{Binding Path.Points}" StrokeEndLineCap="Round" StrokeStartLineCap="Round" StrokeLineJoin="Round"></Polyline>
+                        <Polyline Name="streamLine" Stroke="{Binding Color}" StrokeThickness="{Binding Thickness}" StrokeDashArray="{Binding DashArray}" Points="{Binding Path.Points}" StrokeEndLineCap="Round" StrokeStartLineCap="Round" StrokeLineJoin="Round" cal:Action.TargetWithoutContext="{Binding ElementName=theGrid, Path=DataContext}" cal:Message.Attach="[Event MouseLeftButtonDown] = [Action SelectStream($dataContext,$eventArgs)]"></Polyline>
                         <StackPanel  Canvas.Top="{Binding LabelPoint.Y}" Canvas.Left="{Binding LabelPoint.X}"  ToolTipService.ShowDuration="60000" >
-                            <Border Name="labelBorder"  Background="White" BorderBrush="DimGray" HorizontalAlignment="Left"  BorderThickness="2" CornerRadius="5"  MinWidth="40" MinHeight="20"   cal:Message.Attach="[Event MouseLeftButtonDown] = [Action Select()]"  >
+                            <Border Name="labelBorder"  Background="White" BorderBrush="DimGray" HorizontalAlignment="Left"  BorderThickness="2" CornerRadius="5"  MinWidth="40" MinHeight="20"   cal:Action.TargetWithoutContext="{Binding ElementName=theGrid, Path=DataContext}" cal:Message.Attach="[Event MouseLeftButtonDown] = [Action SelectStream($dataContext,$eventArgs)]"  >
                                 <Grid>
                                     <TextBlock Name="textBlockName" Margin="5,0,5,0" Text="{Binding Name}" HorizontalAlignment="Center" ></TextBlock>
                                     <TextBox Name="textBoxName" Margin="5,0,5,0" Text="{Binding Name}" HorizontalAlignment="Center" Visibility="Collapsed"></TextBox>
                                 </Grid>
+
+                                <Border.ToolTip>
+                                    <ToolTip>
+                                        <TextBlock FontFamily="Consolas" Text="{Binding Report}"></TextBlock>
+                                    </ToolTip>
+                                </Border.ToolTip>                                
                             </Border>
                             <StackPanel Name="Temperature"  Orientation="Horizontal" Margin="3,0,3,0" Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.ShowTemperature, Converter={StaticResource BoolToVis}}" >
-                                <TextBlock Text="{Binding Temperature.ValueInOutputUnit, StringFormat=G4}" HorizontalAlignment="Center" ></TextBlock>
-                                <TextBlock Text="{Binding Temperature.OutputUnit.Symbol}" Margin="3,0,0,0"  HorizontalAlignment="Center" ></TextBlock>
+                                <TextBlock Text="{Binding Temperature.DisplayValue, StringFormat=G4}" HorizontalAlignment="Center" ></TextBlock>
+                                <TextBlock Text="{Binding Temperature.DisplayUnit.Symbol}" Margin="3,0,0,0"  HorizontalAlignment="Center" ></TextBlock>
                             </StackPanel>
                             <StackPanel Name="Pressure"  Orientation="Horizontal" Margin="3,0,3,0" Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.ShowPressure, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding Pressure.ValueInOutputUnit, StringFormat=G4}" HorizontalAlignment="Center" ></TextBlock>
-                                <TextBlock Text="{Binding Pressure.OutputUnit.Symbol}"  Margin="3,0,0,0" HorizontalAlignment="Center" ></TextBlock>
+                                <TextBlock Text="{Binding Pressure.DisplayValue, StringFormat=G4}" HorizontalAlignment="Center" ></TextBlock>
+                                <TextBlock Text="{Binding Pressure.DisplayUnit.Symbol}"  Margin="3,0,0,0" HorizontalAlignment="Center" ></TextBlock>
                             </StackPanel>
                             <StackPanel Name="MassFlow"  Orientation="Horizontal" Margin="3,0,3,0" Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.ShowMassflow, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding Massflow.ValueInOutputUnit, StringFormat=G4}" HorizontalAlignment="Center" ></TextBlock>
-                                <TextBlock Text="{Binding Massflow.OutputUnit.Symbol}" Margin="3,0,0,0" HorizontalAlignment="Center" ></TextBlock>
+                                <TextBlock Text="{Binding Massflow.DisplayValue, StringFormat=G4}" HorizontalAlignment="Center" ></TextBlock>
+                                <TextBlock Text="{Binding Massflow.DisplayUnit.Symbol}" Margin="3,0,0,0" HorizontalAlignment="Center" ></TextBlock>
                             </StackPanel>
                             <StackPanel Name="VapourFraction"  Orientation="Horizontal" Margin="3,0,3,0" Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.ShowVapourFraction, Converter={StaticResource BoolToVis}}">
-                                <TextBlock Text="{Binding VapourFraction.ValueInOutputUnit, StringFormat=G4}" HorizontalAlignment="Center" ></TextBlock>
-                                <TextBlock Text="{Binding VapourFraction.OutputUnit.Symbol}" Margin="3,0,0,0" HorizontalAlignment="Center" ></TextBlock>
-                            </StackPanel>                          
+                                <TextBlock Text="{Binding VapourFraction.DisplayValue, StringFormat=G4}" HorizontalAlignment="Center" ></TextBlock>
+                                <TextBlock Text="{Binding VapourFraction.DisplayUnit.Symbol}" Margin="3,0,0,0" HorizontalAlignment="Center" ></TextBlock>
+                            </StackPanel>
                         </StackPanel>
                     </Canvas>
                     <DataTemplate.Triggers>
@@ -99,33 +143,33 @@
 
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        
+
         <ItemsControl Name="NodeCanvas" ItemsSource="{Binding Items}"  >
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Grid >
-                        <StackPanel  Name="itemPanel" >
+                    <Grid Name="itemPanel" cal:Action.TargetWithoutContext="{Binding ElementName=theGrid, Path=DataContext}"  cal:Message.Attach="[Event MouseLeftButtonDown] = [Action SelectItem($dataContext,$eventArgs)]" >
+                        <StackPanel   >
                             <Grid >
-                                <ContentControl Content="{Binding }" HorizontalAlignment="Left"  Name="nodeIcon">
+                                <ContentControl Content="{Binding }" HorizontalAlignment="Left"  Name="nodeIcon" >
                                     <ContentControl.Style>
                                         <Style TargetType="{x:Type ContentControl}">
                                             <Setter Property="ContentTemplate" Value="{DynamicResource BlockTemplate}" />
-                                            <Style.Triggers>                                             
+                                            <Style.Triggers>
                                                 <DataTrigger Binding="{Binding DisplayIcon}" Value="ColumnSection">
                                                     <Setter Property="ContentTemplate" Value="{DynamicResource ColumnSectionTemplate}" />
-                                                </DataTrigger>                                            
+                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding DisplayIcon}" Value="Stream">
                                                     <Setter Property="ContentTemplate" Value="{DynamicResource StreamTemplate}" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding DisplayIcon}" Value="TwoPhaseFlash">
                                                     <Setter Property="ContentTemplate" Value="{DynamicResource TwoPhaseFlashTemplate}" />
-                                                </DataTrigger>                                               
+                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding DisplayIcon}" Value="Mixer">
                                                     <Setter Property="ContentTemplate" Value="{DynamicResource MixerTemplate}" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding DisplayIcon}" Value="Splitter">
                                                     <Setter Property="ContentTemplate" Value="{DynamicResource SplitterTemplate}" />
-                                                </DataTrigger>                                              
+                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding DisplayIcon}" Value="Heater">
                                                     <Setter Property="ContentTemplate" Value="{DynamicResource HeaterTemplate}" />
                                                 </DataTrigger>
@@ -137,7 +181,20 @@
                                 <ItemsControl Name="connectorLayer"  ItemsSource="{Binding Connectors}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <ContentControl Content="{Binding }" Name="connectorIcon" ContentTemplate="{DynamicResource BoxConnector}" ></ContentControl>                                         
+                                            <ContentControl Tag="{Binding DataContext, ElementName=theGrid}" Content="{Binding }" Name="connectorIcon" ContentTemplate="{DynamicResource BoxConnector}" cal:Action.TargetWithoutContext="{Binding ElementName=theGrid, Path=DataContext}"  cal:Message.Attach="[Event MouseLeftButtonDown] = [Action SelectConnector($dataContext)]" >
+                                                <ContentControl.ContextMenu>
+                                                    <ContextMenu cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Self}}" cal:Message.Attach="[Event Opened]=[Action ContextMenuOpening($source,$eventArgs)]">
+                                                        <MenuItem Header="Source" Name="AddSource"   cal:Message.Attach="AddItem($source, $dataContext)"></MenuItem>
+                                                        <MenuItem Header="Sink"  Name="AddSink"  cal:Message.Attach="AddItem($source, $dataContext)"></MenuItem>
+                                                        <MenuItem Header="Mixer"  Name="AddMixer"   cal:Message.Attach="AddItem($source, $dataContext)"></MenuItem>
+                                                        <MenuItem Header="Splitter"  Name="AddSplitter"  cal:Message.Attach="AddItem($source, $dataContext)"></MenuItem>
+                                                        <MenuItem Header="Heater"  Name="AddHeater" cal:Message.Attach="AddItem($source,$dataContext)"></MenuItem>
+                                                        <MenuItem Header="Flash"  Name="AddFlash"  cal:Message.Attach="AddItem($source, $dataContext)"></MenuItem>
+                                                        <MenuItem Header="Column"  Name="AddColumn"  cal:Message.Attach="AddItem($source, $dataContext)"></MenuItem>
+                                                        <MenuItem Header="Rectification"  Name="AddRectification" cal:Message.Attach="AddItem($source,$dataContext)"></MenuItem>
+                                                    </ContextMenu>
+                                                </ContentControl.ContextMenu>
+                                            </ContentControl>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
 
@@ -154,10 +211,26 @@
                                         </Style>
                                     </ItemsControl.ItemContainerStyle>
 
-                                </ItemsControl>                               
+                                </ItemsControl>
+
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                                    <Border  Width="16" Height="16" CornerRadius="8" Name ="RequiresRebuildIcon" Background="Tomato"  ToolTip="Structural parameters of this unit changed and it requires rebuilding">
+                                        <materialDesign:PackIcon  Kind="Wrench"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+                                    </Border>
+                                    <Border  Width="16" Height="16"  CornerRadius="8" Name ="RequiresInitIcon" Background="LightBlue" ToolTip="Unit is not initialized yet">
+                                        <materialDesign:PackIcon Kind="CommentQuestionOutline" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"   />
+                                    </Border>                                  
+                                    <Border  Width="16" Height="16" CornerRadius="8" Name ="RequiresRecalculationIcon" Background="Gold" ToolTip="Parameters have changed and the Model needs to be recalculated">
+                                        <materialDesign:PackIcon  Kind="Calculator"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch"   />
+                                    </Border>
+                                    <Border  Width="16" Height="16" CornerRadius="8" Name ="IsDeactivatedIcon" Background="Gainsboro" ToolTip="Model is deactivated">
+                                        <materialDesign:PackIcon Kind="BlockHelper"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch"   />
+                                    </Border>
+                                </StackPanel>
+                                
                             </Grid>
                             <TextBlock Margin ="0,5,0,0" Name="textBlockName" HorizontalAlignment="Center" Text="{Binding Name}" FontSize="14" FontFamily="Calibri" Foreground="Black" ></TextBlock>
-                            <TextBox Margin ="0,5,0,0"  Name="textBoxName" HorizontalAlignment="Center"  Text="{Binding Name}" FontSize="14" FontFamily="Calibri"></TextBox>
+                            <TextBox Margin ="0,5,0,0"  Name="textBoxName" HorizontalAlignment="Center"  Text="{Binding Name}" FontSize="14" FontFamily="Calibri" ></TextBox>
 
                             <StackPanel.ToolTip>
                                 <ToolTip>
@@ -192,7 +265,38 @@
                             <Setter TargetName="textBoxName" Property="Visibility" Value="Collapsed"></Setter>
                             <Setter TargetName="textBlockName" Property="Visibility" Value="Collapsed"></Setter>
                         </DataTrigger>
+                        <DataTrigger Binding="{Binding IsActive}" Value="false">
+                            <Setter TargetName="IsDeactivatedIcon" Property="Visibility" Value="Visible"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsActive}" Value="true">
+                            <Setter TargetName="IsDeactivatedIcon" Property="Visibility" Value="Hidden"></Setter>
+                            <Setter TargetName="IsDeactivatedIcon" Property="Width" Value="0"></Setter>
+                        </DataTrigger>
 
+
+                        <DataTrigger Binding="{Binding RequiresRebuild}" Value="true">
+                            <Setter TargetName="RequiresRebuildIcon" Property="Visibility" Value="Visible"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding RequiresRebuild}" Value="false">
+                            <Setter TargetName="RequiresRebuildIcon" Property="Visibility" Value="Hidden"></Setter>
+                            <Setter TargetName="RequiresRebuildIcon" Property="Width" Value="0"></Setter>
+                        </DataTrigger>
+                        
+                        <DataTrigger Binding="{Binding RequiresInitialization}" Value="true">
+                            <Setter TargetName="RequiresInitIcon" Property="Visibility" Value="Visible"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding RequiresInitialization}" Value="false">
+                            <Setter TargetName="RequiresInitIcon" Property="Visibility" Value="Hidden"></Setter>
+                            <Setter TargetName="RequiresInitIcon" Property="Width" Value="0"></Setter>
+                        </DataTrigger>
+                        
+                        <DataTrigger Binding="{Binding RequiresRecalculation}" Value="true">
+                            <Setter TargetName="RequiresRecalculationIcon" Property="Visibility" Value="Visible"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding RequiresRecalculation}" Value="false">
+                            <Setter TargetName="RequiresRecalculationIcon" Property="Visibility" Value="Hidden"></Setter>
+                            <Setter TargetName="RequiresRecalculationIcon" Property="Width" Value="0"></Setter>
+                        </DataTrigger>
                     </DataTemplate.Triggers>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -206,7 +310,7 @@
 
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <Canvas AllowDrop="True"></Canvas>
+                    <Canvas AllowDrop="True" ></Canvas>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
 
@@ -215,6 +319,11 @@
         <Border HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10" CornerRadius="10" Background="White" BorderBrush="LightGray" BorderThickness="1">
             <TextBox VerticalAlignment="Top" Background="White" x:Name="FlowsheetName" MinWidth="100" Margin="20,5,20,5" FontSize="14"></TextBox>
         </Border>
-        
+        <!--<StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Left"  Margin="10">
+            <TextBlock  Text="{Binding MousePosition}"></TextBlock>
+            <TextBlock  Text="{Binding SelectedConnector}"></TextBlock>
+            <TextBlock   Text="{Binding IsDragging}"></TextBlock>
+            <TextBlock   Text="{Binding SelectedUnit}"></TextBlock>
+        </StackPanel>-->
     </Grid>
 </UserControl>

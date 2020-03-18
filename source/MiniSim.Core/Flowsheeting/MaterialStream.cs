@@ -174,6 +174,7 @@ namespace MiniSim.Core.Flowsheeting
             var x = Bulk.ComponentMolarFraction;
             rachfordRice = Sym.Sum(0, NC, i => x[i] * (1 - K[i]) / (1 + VaporFraction * (K[i] - 1)));
 
+       
 
         }
 

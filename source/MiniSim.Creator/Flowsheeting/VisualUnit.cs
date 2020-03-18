@@ -1,10 +1,13 @@
-﻿using MiniSim.Core.Flowsheeting;
+﻿using MiniSim.Core.Expressions;
+using MiniSim.Core.Flowsheeting;
+using MiniSim.Core.ModelLibrary;
+using MiniSim.Core.Reporting;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-
+using System.Text;
 
 namespace MiniSim.Creator.Flowsheeting
 {
@@ -20,10 +23,12 @@ namespace MiniSim.Creator.Flowsheeting
         IconTypes _displayIcon = IconTypes.Vessel;
 
         private bool _requiresRebuild = false;
-        private bool _requiresInput = false;
+        private bool _requiresInit = false;
         private bool _requiresRecalculation = false;
-         string _report = "";
-       
+        string _report = "";
+
+        ProcessUnit _modelInstance;
+
         #endregion
 
 
@@ -46,10 +51,10 @@ namespace MiniSim.Creator.Flowsheeting
             {
                 return _report;
             }
-            set { _report = value; NotifyOfPropertyChange(() => Report);  }
+            set { _report = value; NotifyOfPropertyChange(() => Report); }
         }
 
-      
+
         [Category("Information")]
         [DisplayName("Display Icon")]
         [Description("The Visual Representation of the unit.")]
@@ -67,8 +72,8 @@ namespace MiniSim.Creator.Flowsheeting
             get { return _connectors; }
             set { _connectors = new ObservableCollection<Connector>(value); NotifyOfPropertyChange(() => Connectors); }
         }
-       
-     
+
+
         public bool RequiresRebuild
         {
             get
@@ -80,22 +85,22 @@ namespace MiniSim.Creator.Flowsheeting
             {
                 _requiresRebuild = value;
                 NotifyOfPropertyChange(() => RequiresRebuild);
-          
+
             }
         }
 
-        public bool RequiresInput
+        public bool RequiresInitialization
         {
             get
             {
-                return _requiresInput;
+                return _requiresInit;
             }
 
             set
             {
-                _requiresInput = value;
-                NotifyOfPropertyChange(() => RequiresInput);
-            
+                _requiresInit = value;
+                NotifyOfPropertyChange(() => RequiresInitialization);
+
             }
         }
 
@@ -110,9 +115,25 @@ namespace MiniSim.Creator.Flowsheeting
             {
                 _requiresRecalculation = value;
                 NotifyOfPropertyChange(() => RequiresRecalculation);
-              }
+            }
         }
-      
+
+        public ProcessUnit ModelInstance
+        {
+            get => _modelInstance;
+            set
+            {
+                _modelInstance = value;
+                NotifyOfPropertyChange(() => ModelInstance);
+                NotifyOfPropertyChange(() => Variables);
+                NotifyOfPropertyChange(() => Parameters);
+                NotifyOfPropertyChange(() => ModelClass);
+            }
+        }
+
+        public IList<Variable> Variables { get => ModelInstance?.Variables; }
+        public IList<Variable> Parameters { get => ModelInstance?.Parameters; }
+        public string ModelClass { get => ModelInstance?.Class; }
 
         #endregion
 
@@ -127,6 +148,71 @@ namespace MiniSim.Creator.Flowsheeting
             newConnector.Owner = this;
             Connectors.Add(newConnector);
         }
+
+        public void Rebuild()
+        {
+            StringBuilder log = new StringBuilder();
+
+            log.AppendLine($"Rebuilding Unit {Name} ({ModelClass})");
+            foreach (var connector in Connectors.Where(c => c.IsConnected))
+            {
+                var stream = connector.Connection?.ModelInstance;
+                if (stream != null)
+                {
+                    var portName = connector.Name;
+                    if (ModelInstance.Class == "Mixer")
+                    {
+                        if (portName.StartsWith("In"))
+                            portName = "In";
+                    }
+
+                    if (ModelClass == "TraySection" && portName == "Feeds")
+                    {
+                        var trayModel = ModelInstance as EquilibriumStageSection;
+                        trayModel.ConnectFeed(stream, 10);
+                    }
+                    else
+                        ModelInstance.Connect(portName, stream);
+
+                    log.AppendLine($"Connecting stream {stream.Name} to port {portName}");
+                }
+            }
+            log.AppendLine("");
+            Report = log.ToString();
+        }
+
+        public void Initialize()
+        {
+            var logger = new StringBuilderLogger();
+            logger.Log($"Initializing Unit {Name} ({ModelClass})");
+
+
+            ModelInstance.Initialize();
+            Generator generator = new Generator(logger);
+            generator.Report(ModelInstance);
+            logger.Log("");
+            Report = logger.Flush();
+
+            foreach (var connector in Connectors.Where(c => c.IsConnected))
+            {
+                generator.Report(connector.Connection.ModelInstance);
+                connector.Connection.Report = logger.Flush();
+            }
+        }
+
+        public void Solve()
+        {
+            var logger = new StringBuilderLogger();
+            logger.Log($"Solving Unit {Name} ({ModelClass})");
+            ModelInstance.Solve(logger);
+            logger.Log("");
+            logger.Log("Results");
+            logger.Log("");
+            Generator generator = new Generator(logger);
+            generator.Report(ModelInstance);
+            logger.Log("");
+            Report = logger.Flush();
+        }
         #endregion
 
         void UpdateConnectorsOnMove(DrawableItem item)
@@ -137,6 +223,9 @@ namespace MiniSim.Creator.Flowsheeting
                     con.OnPositionUpdated(con);
             }
         }
-
+        public void Select()
+        {
+            IsSelected = true;
+        }
     }
 }

@@ -27,16 +27,29 @@ namespace MiniSim.Core.ModelLibrary
             dp = system.VariableFactory.CreateVariable("DP", "Pressure Drop", PhysicalDimension.Pressure);
             p = system.VariableFactory.CreateVariable("P", "Pressure in splitter", PhysicalDimension.Pressure);
             SplitFactor = system.VariableFactory.CreateVariable("K", "Split factor (molar)", PhysicalDimension.MolarFraction);
-            dp.LowerBound = 0;
+            dp.LowerBound = -1e8;
+            dp.SetValue(0);
             AddVariable(dp);
             AddVariable(SplitFactor);
             AddVariable(p);
+
+            Parameters.Add(SplitFactor);
+            Parameters.Add(p);
+            Parameters.Add(dp);
+        }
+
+        public override ProcessUnit ApplyDefaultSpecifications()
+        {
+            SplitFactor.Fix(0.5);
+            dp.Fix();
+
+            return this;
         }
 
         public override void CreateEquations(AlgebraicSystem problem)
         {
             foreach (var vari in Variables)
-            {                
+            {
                 vari.Children.Clear();
             }
 
@@ -66,7 +79,7 @@ namespace MiniSim.Core.ModelLibrary
             AddEquationToEquationSystem(problem, (p / 1e4) - ((In.Streams[0].Pressure - dp) / 1e4), "Pressure drop");
 
             AddEquationToEquationSystem(problem, (Out1.Streams[0].Pressure / 1e4) - (Sym.Par(p) / 1e4), "Pressure Balance");
-          //  AddEquationToEquationSystem(problem, (Out1.Streams[0].Temperature / 1e3) - (Sym.Par(In.Streams[0].Temperature) / 1e3), "Temperature Balance");
+            //  AddEquationToEquationSystem(problem, (Out1.Streams[0].Temperature / 1e3) - (Sym.Par(In.Streams[0].Temperature) / 1e3), "Temperature Balance");
             AddEquationToEquationSystem(problem, (Out1.Streams[0].Bulk.SpecificEnthalpy / 1e4) - (Sym.Par(In.Streams[0].Bulk.SpecificEnthalpy) / 1e4), "Enthalpy Balance");
 
             AddEquationToEquationSystem(problem, (Out2.Streams[0].Pressure / 1e4) - (Sym.Par(p) / 1e4), "Pressure Balance");

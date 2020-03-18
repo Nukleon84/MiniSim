@@ -1,4 +1,5 @@
 ﻿using MiniSim.Core.Expressions;
+using MiniSim.Core.Interfaces;
 using MiniSim.Core.Numerics;
 using MiniSim.Core.Reporting;
 using MiniSim.Core.Thermodynamics;
@@ -113,7 +114,10 @@ namespace MiniSim.Core.Flowsheeting
             return this;
         }
 
-
+        public virtual ProcessUnit ApplyDefaultSpecifications()
+        {
+            return this;
+        }
         public virtual ProcessUnit Initialize()
         {
             return this;
@@ -121,9 +125,12 @@ namespace MiniSim.Core.Flowsheeting
         /// <summary>
         /// Solves the unit together with the output material streams as a single flowsheet. When using this method, the unit has to be specified fully.
         /// </summary>
-        public virtual ProcessUnit Solve()
+        public virtual ProcessUnit Solve(ILogger logger=null)
         {
-            var decomp = new DecompositionSolver(new NoLogger());
+            if (logger == null)
+                logger = new NoLogger();
+
+            var decomp = new DecompositionSolver(logger);
 
             var flowsheet = new Flowsheet(Name);
             flowsheet.AddUnit(this);

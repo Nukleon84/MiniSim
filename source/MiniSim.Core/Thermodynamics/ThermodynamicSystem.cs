@@ -10,6 +10,7 @@ namespace MiniSim.Core.Thermodynamics
     public class ThermodynamicSystem
     {
         string _name;
+        string _baseMethod;
         List<Substance> _components = new List<Substance>();
         CorrelationFactory _correlationFactory = new CorrelationFactory();
         VariableFactory _variableFactory = new VariableFactory();
@@ -92,6 +93,7 @@ namespace MiniSim.Core.Thermodynamics
         public List<Chemistry> ChemistryBlocks { get => _chemistryBlocks; set => _chemistryBlocks = value; }
         public CorrelationFactory CorrelationFactory { get => _correlationFactory; set => _correlationFactory = value; }
         public PropertyFunctionFactory EquationFactory { get => _equationFactory; set => _equationFactory = value; }
+        public string BaseMethod { get => _baseMethod; set => _baseMethod = value; }
 
 
         #endregion
@@ -104,7 +106,7 @@ namespace MiniSim.Core.Thermodynamics
         {
             Name = name;
             MakeDefault(baseMethod);
-
+            BaseMethod = baseMethod;
             if (uomset.ToLower() == "default")
                 VariableFactory.SetOutputDimensions(UnitsOfMeasure.UnitSet.CreateDefault());
             if (uomset == "SI")
@@ -210,6 +212,13 @@ namespace MiniSim.Core.Thermodynamics
                     EquilibriumMethod.AllowedPhases = AllowedPhases.VLE;
                     break;
             }
+        }
+
+        public string Summary => ToString();
+
+        public override string ToString()
+        {
+            return $"{Name} ({BaseMethod}, NC={GetNumberOfComponents()})";
         }
     }
 }

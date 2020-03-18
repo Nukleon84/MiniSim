@@ -25,7 +25,23 @@ namespace MiniSim.Core.ModelLibrary
 
             AddVariables(_stream.Variables);
 
+            Parameters.Add(_stream.Temperature);
+            Parameters.Add(_stream.Pressure);
+            Parameters.Add(_stream.VaporFraction);
+            Parameters.AddRange(_stream.Bulk.ComponentMolarflow);
         }
+
+
+        public override ProcessUnit ApplyDefaultSpecifications()
+        {
+            _stream.Temperature.Fix(298.15);
+            _stream.Pressure.Fix();
+            foreach (var flow in _stream.Bulk.ComponentMolarflow)
+                flow.Fix(1);
+
+            return this;
+        }
+
 
         public override void CreateEquations(AlgebraicSystem problem)
         {
@@ -46,7 +62,8 @@ namespace MiniSim.Core.ModelLibrary
             }
             AddEquationToEquationSystem(problem, (Out.Streams[0].Pressure / 1e4) - (Out.Streams[0].Pressure / 1e4), "Pressure Balance");
             AddEquationToEquationSystem(problem, (Out.Streams[0].Temperature / 1e3) - (Out.Streams[0].Temperature / 1e3), "Temperature Balance");
-           // base.CreateEquations(problem);
+            // base.CreateEquations(problem);
+
         }
 
         public override ProcessUnit Initialize()
@@ -54,7 +71,14 @@ namespace MiniSim.Core.ModelLibrary
 
             var Out = FindMaterialPort("Out");
             int NC = System.Components.Count;
-            _stream.InitializeFromMolarFractions();
+
+            if (_stream.Bulk.ComponentMolarflow.Any(v => v.IsFixed))
+                _stream.InitializeFromMolarFlows();
+            else if (_stream.Bulk.ComponentMassflow.Any(v => v.IsFixed))
+                _stream.InitializeFromMassFlows();
+            else
+                _stream.InitializeFromMolarFractions();
+
             _stream.FlashPT();
 
             Out.Streams[0].Pressure.SetValue(_stream.Pressure.Val());

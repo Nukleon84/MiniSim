@@ -19,7 +19,7 @@ namespace MiniSim.Core.ModelLibrary
 
 
             MaterialPorts.Add(new Port<MaterialStream>("In", PortDirection.In, 1) { WidthFraction = 0, HeightFraction = 0.5, Normal = PortNormal.Left });
-
+            
         }
 
         public override void CreateEquations(AlgebraicSystem problem)

@@ -23,7 +23,9 @@ namespace MiniSim.Creator.Flowsheeting
         double _thickness = 3.0;
         string _color = "DimGray";
         string _dashArray = "1,0";
-         
+        MaterialStream _modelInstance;
+        string _report = "";
+
         #endregion
 
         #region Properties
@@ -49,7 +51,7 @@ namespace MiniSim.Creator.Flowsheeting
                 }
 
                 UpdatePathGeometry();
-                
+
                 NotifyOfPropertyChange(() => Source);
             }
         }
@@ -77,7 +79,7 @@ namespace MiniSim.Creator.Flowsheeting
 
                 UpdatePathGeometry();
                 NotifyOfPropertyChange(() => Sink);
-             
+
             }
         }
 
@@ -86,7 +88,135 @@ namespace MiniSim.Creator.Flowsheeting
             get { return _name; }
             set { _name = value; NotifyOfPropertyChange(() => Name); }
         }
-               
+
+        public Variable Temperature
+        {
+            get
+            {
+                return _modelInstance?.GetVariable("T");
+            }
+        }
+
+        public Variable Pressure
+        {
+            get
+            {
+                return _modelInstance?.GetVariable("P");
+            }
+
+        }
+
+        public Variable Massflow
+        {
+            get
+            {
+                return _modelInstance?.GetVariable("m");
+            }
+
+        }
+        public Variable VapourFraction
+        {
+            get
+            {
+                return _modelInstance?.GetVariable("VF");
+            }
+
+        }
+
+        public Point LabelPoint
+        {
+            get
+            {
+                return _labelPoint;
+            }
+
+            set
+            {
+                _labelPoint = value; NotifyOfPropertyChange(() => LabelPoint);
+            }
+        }
+
+        public bool IsSelected
+        {
+            get
+            {
+                return _isSelected;
+            }
+
+            set
+            {
+                _isSelected = value; NotifyOfPropertyChange(() => IsSelected);
+            }
+        }
+
+        public double Thickness
+        {
+            get
+            {
+                return _thickness;
+            }
+
+            set
+            {
+                _thickness = value; NotifyOfPropertyChange(() => Thickness);
+            }
+        }
+
+        public string Color
+        {
+            get
+            {
+                return _color;
+            }
+
+            set
+            {
+                _color = value; NotifyOfPropertyChange(() => Color);
+            }
+        }
+
+
+
+        public string DashArray
+        {
+            get
+            {
+                return _dashArray;
+            }
+
+            set
+            {
+                _dashArray = value;
+                NotifyOfPropertyChange(() => DashArray);
+            }
+        }
+
+        public MaterialStream ModelInstance
+        {
+            get => _modelInstance;
+            set
+            {
+                _modelInstance = value;
+                NotifyOfPropertyChange(() => ModelInstance);
+                NotifyOfPropertyChange(() => Temperature);
+                NotifyOfPropertyChange(() => Pressure);
+                NotifyOfPropertyChange(() => VapourFraction);
+                NotifyOfPropertyChange(() => Massflow);
+            }
+        }
+
+        public string Report { get => _report;
+            set { _report = value;
+                NotifyOfPropertyChange(() => Report);
+                NotifyOfPropertyChange(() => Temperature);
+                NotifyOfPropertyChange(() => Pressure);
+                NotifyOfPropertyChange(() => VapourFraction);
+                NotifyOfPropertyChange(() => Massflow);
+            } }
+
+        #endregion
+
+        #region Public Methods
 
         [NonSerialized]
         System.Windows.Media.PolyLineSegment path = new System.Windows.Media.PolyLineSegment();
@@ -101,10 +231,7 @@ namespace MiniSim.Creator.Flowsheeting
             set { path = value; NotifyOfPropertyChange(() => Path); }
         }
 
-        protected void onPositionUpdated(DrawableItem sender)
-        {
-            UpdatePathGeometry();
-        }
+
 
         public virtual void UpdatePathGeometry()
         {
@@ -120,13 +247,13 @@ namespace MiniSim.Creator.Flowsheeting
                     System.Windows.Point endPoint = new System.Windows.Point(Sink.Owner.X + Sink.X + 5, Sink.Owner.Y + Sink.Y + 5);
 
                     Path.Points.Clear();
-                    
+
                     double startX = 0, startY = 0, endX = 0, endY = 0, startXO = 0, startYO = 0, endXO = 0, endYO = 0;
 
-                    startX = Source.Owner.X + Source.X+Source.Width / 2.0;
+                    startX = Source.Owner.X + Source.X + Source.Width / 2.0;
                     startY = Source.Owner.Y + Source.Y + Source.Width / 2.0;
 
-                    endX = Sink.Owner.X + Sink.X + Sink.Width/2.0;
+                    endX = Sink.Owner.X + Sink.X + Sink.Width / 2.0;
                     endY = Sink.Owner.Y + Sink.Y + Sink.Width / 2.0;
 
 
@@ -383,7 +510,7 @@ namespace MiniSim.Creator.Flowsheeting
                     DrawArrowPoint();
 
                     NotifyOfPropertyChange(() => Path);
-                    NotifyOfPropertyChange(() => LabelPoint);             
+                    NotifyOfPropertyChange(() => LabelPoint);
                 }
 
                 if (Source.Owner != null && Sink.Owner == null)
@@ -398,13 +525,18 @@ namespace MiniSim.Creator.Flowsheeting
 
                     NotifyOfPropertyChange(() => Path);
                     NotifyOfPropertyChange(() => LabelPoint);
-                
+
                 }
 
 
 
             }
         }
+        protected void onPositionUpdated(DrawableItem sender)
+        {
+            UpdatePathGeometry();
+        }
+
         void DrawArrowPoint()
         {
             System.Windows.Point endPoint = new System.Windows.Point(Sink.Owner.X + Sink.X + 5, Sink.Owner.Y + Sink.Y + 5);
@@ -438,74 +570,7 @@ namespace MiniSim.Creator.Flowsheeting
             }
         }
 
-      
-        public Point LabelPoint
-        {
-            get
-            {
-                return _labelPoint;
-            }
 
-            set
-            {
-                _labelPoint = value; NotifyOfPropertyChange(() => LabelPoint);
-            }
-        }
-
-        public bool IsSelected
-        {
-            get
-            {
-                return _isSelected;
-            }
-
-            set
-            {
-                _isSelected = value; NotifyOfPropertyChange(() => IsSelected);
-            }
-        }
-        
-        public double Thickness
-        {
-            get
-            {
-                return _thickness;
-            }
-
-            set
-            {
-                _thickness = value; NotifyOfPropertyChange(() => Thickness); 
-            }
-        }
-
-        public string Color
-        {
-            get
-            {
-                return _color;
-            }
-
-            set
-            {
-                _color = value; NotifyOfPropertyChange(() => Color);
-            }
-        }
-
-       
-
-        public string DashArray
-        {
-            get
-            {
-                return _dashArray;
-            }
-
-            set
-            {
-                _dashArray = value;
-                NotifyOfPropertyChange(() => DashArray); 
-            }
-        }
         #endregion
 
     }

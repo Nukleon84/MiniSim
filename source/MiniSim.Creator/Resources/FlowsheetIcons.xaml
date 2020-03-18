@@ -118,7 +118,7 @@
 
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Background="White">
                 <TextBlock Text="N=" ></TextBlock>
-                <TextBlock Text="{Binding Model.NumberOfTrays}"></TextBlock>
+                <TextBlock Text="{Binding ModelInstance.NumberOfTrays}"></TextBlock>
             </StackPanel>
 
         </Grid>

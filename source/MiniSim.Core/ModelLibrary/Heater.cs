@@ -33,7 +33,7 @@ namespace MiniSim.Core.ModelLibrary
             T = system.VariableFactory.CreateVariable("T", "Temperature in heater outlet", PhysicalDimension.Temperature);
             VF = system.VariableFactory.CreateVariable("VF", "Vapor fraction in heater outlet", PhysicalDimension.MolarFraction);
             Q = system.VariableFactory.CreateVariable("Q", "Heat Duty", PhysicalDimension.HeatFlow);
-            dp.LowerBound = 0;
+            dp.LowerBound = -1e8;
             dp.SetValue(0);
 
             AddVariable(dp);
@@ -42,6 +42,19 @@ namespace MiniSim.Core.ModelLibrary
             AddVariable(VF);
             AddVariable(Q);
 
+            Parameters.Add(T);
+            Parameters.Add(VF);
+            Parameters.Add(Q);
+            Parameters.Add(p);
+            Parameters.Add(dp);
+
+        }
+        public override ProcessUnit ApplyDefaultSpecifications()
+        {
+            Q.Fix();
+            dp.Fix();
+            
+            return this;
         }
 
         public override void CreateEquations(AlgebraicSystem problem)

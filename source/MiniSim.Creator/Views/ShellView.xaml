@@ -17,9 +17,18 @@
         TextOptions.TextRenderingMode="Auto"        
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
-        
+         
         >
-    <materialDesign:DialogHost Identifier="RootDialog">
+
+    <Window.InputBindings>
+        <KeyBinding Key="A" Modifiers="Ctrl"
+                Command="{Binding SelectAllCommand}" />
+        <KeyBinding Key="Delete" 
+                Command="{Binding DeleteCommand}" />
+    </Window.InputBindings>
+    
+    
+    <materialDesign:DialogHost Identifier="RootDialog" >
         <materialDesign:DrawerHost IsLeftDrawerOpen="{Binding ElementName=MenuToggleButton, Path=IsChecked}">
             <materialDesign:DrawerHost.LeftDrawerContent>
                 <DockPanel MinWidth="212">
@@ -57,7 +66,7 @@
                         <MenuItem Header="Flowsheets" >
                             <MenuItem.Icon>
                                 <materialDesign:PackIcon Kind="BookOpenPageVariant" />
-                            </MenuItem.Icon>                          
+                            </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="Property Blocks" >
                             <MenuItem.Icon>
@@ -78,15 +87,15 @@
                     </Menu>
                 </DockPanel>
             </materialDesign:DrawerHost.LeftDrawerContent>
-            <DockPanel>
+            <DockPanel  >
                 <StatusBar DockPanel.Dock="Bottom">
                     <StatusBarItem HorizontalAlignment="Left">
                         <WrapPanel>
                             <TextBlock Text="Property Block" Foreground="DimGray" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox Name="PropertyBlocks" Width="150" SelectedItem="{Binding CurrentPropertyBlock}" ItemsSource="{Binding PropertyBlocks}"></ComboBox>
+                            <ComboBox Margin="10,0,0,0" Name="PropertyBlocks" Width="180"  DisplayMemberPath="Summary" SelectedItem="{Binding CurrentPropertyBlock}" ItemsSource="{Binding AvailablePropertyBlocks}"></ComboBox>
 
                             <TextBlock Text="Flowsheet" Foreground="DimGray" VerticalAlignment="Center" Margin="15,0,0,0"></TextBlock>
-                            <ComboBox Name="Flowsheets" Width="150" DisplayMemberPath="Name" SelectedItem="{Binding CurrentFlowsheet}" ItemsSource="{Binding AvailableFlowsheets}" ></ComboBox>
+                            <ComboBox Margin="10,0,0,0" Name="Flowsheets" Width="150" DisplayMemberPath="Name" SelectedItem="{Binding CurrentFlowsheet}" ItemsSource="{Binding AvailableFlowsheets}" ></ComboBox>
                         </WrapPanel>
                     </StatusBarItem>
                     <StatusBarItem HorizontalAlignment="Right">
@@ -108,25 +117,26 @@
                 </StatusBar>
                 <Grid>
 
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                        <materialDesign:Card Padding="2" Width="1800" Height="900" Margin="10,30,10,10"  >
-                            <ContentControl x:Name="CurrentCanvas" ></ContentControl>
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" >
+                        <materialDesign:Card Padding="2" Width="1800" Height="900" Margin="10,30,10,10">
+                            <ContentControl x:Name="CurrentCanvas"  ></ContentControl>
                         </materialDesign:Card>
-                        
-                        
+
+
                     </ScrollViewer>
                     <!--<Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" CornerRadius="10" Background="White" BorderBrush="LightGray" BorderThickness="1">-->
                     <StackPanel Orientation="Horizontal" Margin="10,3,3,3" VerticalAlignment="Top" >
-                            <ToggleButton HorizontalAlignment="Left" VerticalAlignment="Top" Style="{StaticResource MaterialDesignHamburgerToggleButton}" IsChecked="False" x:Name="MenuToggleButton"/>
-                            <TextBox VerticalAlignment="Center" Margin="5,0,0,0" Width="180"  x:Name="SearchText" materialDesign:HintAssist.Hint="Search project">
-                            </TextBox>
-                            <Button Style="{StaticResource MaterialDesignFlatButton}">
-                                <Button.Content>
-                                    <materialDesign:PackIcon Kind="Search" />
-                                </Button.Content>
-                            </Button>
-                        </StackPanel>
+                        <ToggleButton HorizontalAlignment="Left" VerticalAlignment="Top" Style="{StaticResource MaterialDesignHamburgerToggleButton}" IsChecked="False" x:Name="MenuToggleButton"/>
+                        <TextBox VerticalAlignment="Center" Margin="5,0,0,0" Width="180"  x:Name="SearchText" materialDesign:HintAssist.Hint="Search project">
+                        </TextBox>
+                        <Button Style="{StaticResource MaterialDesignFlatButton}">
+                            <Button.Content>
+                                <materialDesign:PackIcon Kind="Search" />
+                            </Button.Content>
+                        </Button>
+                    </StackPanel>
                     <!--</Border>-->
+                    <materialDesign:Snackbar HorizontalAlignment="Right" VerticalAlignment="Bottom" MessageQueue="{Binding MessageQueue}"  />
 
                     <materialDesign:PopupBox HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False">
                         <UniformGrid Columns="3" Margin="20">

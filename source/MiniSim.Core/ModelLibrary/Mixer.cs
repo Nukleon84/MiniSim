@@ -28,8 +28,18 @@ namespace MiniSim.Core.ModelLibrary
             dp.SetValue(0);
             AddVariable(dp);
             AddVariable(p);
-        }
 
+            Parameters.Add(p);
+            Parameters.Add(dp);
+
+        }
+        public override ProcessUnit ApplyDefaultSpecifications()
+        {
+            
+            dp.Fix();
+
+            return this;
+        }
         public override void CreateEquations(AlgebraicSystem problem)
         {
             foreach (var vari in Variables)

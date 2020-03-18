@@ -301,7 +301,20 @@ namespace MiniSim.Core.ModelLibrary
                 }
             }
 
+            Parameters.AddRange(_trays.Select(t => t.DP));
+            Parameters.AddRange(_trays.Select(t => t.Q));
+            Parameters.AddRange(_trays.Select(t => t.eps));
+
         }
+
+        public override ProcessUnit ApplyDefaultSpecifications()
+        {
+            MakeAdiabatic();
+            MakeIsobaric();
+            FixStageEfficiency(1.0);
+            return this;
+        }
+
 
 
         public double[] GetProfile(string type, string component = null)
@@ -556,7 +569,7 @@ namespace MiniSim.Core.ModelLibrary
             AddEquationToEquationSystem(problem, (VOut.Bulk.SpecificEnthalpy / 1e3) - (_trays[0].HV / 1e3));
             AddEquationToEquationSystem(problem, VOut.Pressure - (_trays[0].p));
             AddEquationToEquationSystem(problem, LOut.Temperature - (_trays[NumberOfTrays - 1].T));
-            AddEquationToEquationSystem(problem, LOut.Pressure - (_trays[NumberOfTrays - 1].p));
+            AddEquationToEquationSystem(problem, LOut.Pressure - (_trays[NumberOfTrays - 1].p+ _trays[NumberOfTrays - 1].DP));
 
             //Bind VIn and LIN to Feed of first and last tray
             _trays[0].HF.Unfix();
@@ -857,7 +870,7 @@ namespace MiniSim.Core.ModelLibrary
             if (V < 1e-6)
             {
                 var D = F * 0.5;
-                V = (1 + 1) * D;              
+                V = (1 + 1) * D;
 
                 VIn.Streams[0].CopyFrom(feedcopy);
                 feedcopy.VaporFraction.SetValue(1);

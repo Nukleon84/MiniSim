@@ -13,7 +13,8 @@ namespace MiniSim.Creator.Flowsheeting
         bool _isConnected = false;
         PortDirection _intent = PortDirection.In;
         PortNormal _direction = PortNormal.Right;
-       
+        Connection _connection;
+
         #endregion
 
         #region Properties
@@ -56,12 +57,19 @@ namespace MiniSim.Creator.Flowsheeting
                 _intent = value; NotifyOfPropertyChange(() => Intent);
             }
         }
+
+        public Connection Connection { get => _connection; set => _connection = value; }
         #endregion
 
         public Connector()
         {
             this.Width = 10;
             this.Height = 10;
+        }
+
+        public override string ToString()
+        {
+            return Owner?.Name+"."+Name;
         }
     }
 }

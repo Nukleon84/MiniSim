@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MiniSim.Core.Numerics
@@ -30,7 +31,7 @@ namespace MiniSim.Core.Numerics
         private bool _isOverconstrained = false;
         int _minimumSubsystemSize = 1;
 
-
+        Action<int> _onProgress;
 
         public AlgebraicSystem ProblemData
         {
@@ -140,6 +141,7 @@ namespace MiniSim.Core.Numerics
         }
 
         public bool ShowStatistics { get => _showStatistics; set => _showStatistics = value; }
+        public Action<int> OnProgress { get => _onProgress; set => _onProgress = value; }
 
         void Log(string message)
         {
@@ -321,6 +323,7 @@ namespace MiniSim.Core.Numerics
             bool hasError = false;
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
+
             foreach (var decomposedNlp in _decomposedNlps)
             {
                 if (decomposedNlp.Variables.Count == 0)
@@ -351,7 +354,7 @@ namespace MiniSim.Core.Numerics
                     else
                         status = newtonSubsolver.Solve(decomposedNlp);
                 }
-                
+
                 if (!status)
                     status = newtonSubsolver.Solve(decomposedNlp);
 
@@ -377,9 +380,12 @@ namespace MiniSim.Core.Numerics
                 }
                 else
                 {
-                    //LogSuccess("Problem " + decomposedNlp.Name + " solved in " + subsolver.Iterations + " iterations.");                    
+                    OnProgress?.Invoke((int)((double)i / (double)_decomposedNlps.Count * 100));
+                    // LogSuccess("Problem " + decomposedNlp.Name + " solved in " + newtonSubsolver.CurrentIterations + " iterations.");                    
                 }
                 i++;
+
+                
             }
             watch.Stop();
 
