@@ -15,7 +15,7 @@ namespace MiniSim.Core.Thermodynamics
         public Variable Href { get; set; }
         public Variable TPhaseChange { get; set; }
         public bool PhaseChangeAtSystemTemperature { get; set; }
-        public PhaseState ReferenceState { get; set; }
+        public ReferencePhase ReferenceState { get; set; }
 
         public static PureEnthalpyFunction Create(ThermodynamicSystem sys, Substance comp)
         {
@@ -25,7 +25,7 @@ namespace MiniSim.Core.Thermodynamics
             func.Href = sys.VariableFactory.CreateVariable("Href", "Reference enthalpy for enthalpy calculation", PhysicalDimension.SpecificMolarEnthalpy);
             func.PhaseChangeAtSystemTemperature = true;
             func.TPhaseChange = sys.VariableFactory.CreateVariable("TPC", "Temperature of phase change for enthalpy calculation", PhysicalDimension.Temperature);
-            func.ReferenceState = PhaseState.Vapor;
+            func.ReferenceState = ReferencePhase.Vapor;
             return func;
         }
     }

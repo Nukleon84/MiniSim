@@ -155,7 +155,7 @@ namespace MiniSim.Core.Thermodynamics
         {
             Components.Add(comp);
             var enthalpy = PureEnthalpyFunction.Create(this, comp);
-            enthalpy.ReferenceState = PhaseState.Vapor;
+            enthalpy.ReferenceState = ReferencePhase.Vapor;
             enthalpy.Tref.SetValue(298.15);
             EnthalpyMethod.PureComponentEnthalpies.Add(enthalpy);
 

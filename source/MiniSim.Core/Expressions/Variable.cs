@@ -63,6 +63,13 @@ namespace MiniSim.Core.Expressions
             }
         }
 
+        public double SIValue
+        {
+            get { return Val(); }
+            set { SetValue(value); }
+        }
+
+
         public double UpperBound { get => _upperBound; set => _upperBound = value; }
         public double LowerBound { get => _lowerBound; set => _lowerBound = value; }
         public string Description { get => _description; set => _description = value; }
@@ -79,7 +86,7 @@ namespace MiniSim.Core.Expressions
             DisplayUnit = internalUnit;
             DiffFunc = (vari) => vari == this ? 1 : 0;
         }
-        
+
 
         public Variable(string name, double value, double lower, double upper, Unit internalUnit, string description) : this(name, () => value, internalUnit)
         {

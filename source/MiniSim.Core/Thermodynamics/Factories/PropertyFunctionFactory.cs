@@ -328,7 +328,7 @@ namespace MiniSim.Core.Thermodynamics
             Expression expr = null;
             var comp = sys.Components[idx];
 
-            if (sys.EnthalpyMethod.PureComponentEnthalpies[idx].ReferenceState == PhaseState.Vapor)
+            if (sys.EnthalpyMethod.PureComponentEnthalpies[idx].ReferenceState == ReferencePhase.Vapor)
             {
                 expr = sys.EnthalpyMethod.PureComponentEnthalpies[idx].Href
                    + Sym.Par(sys.EquationFactory.GetIdealGasHeatCapacityIntegralExpression(sys, comp, T, Tref));
@@ -361,7 +361,7 @@ namespace MiniSim.Core.Thermodynamics
             Expression expr = null;
             var comp = sys.Components[idx];
 
-            if (sys.EnthalpyMethod.PureComponentEnthalpies[idx].ReferenceState == PhaseState.Liquid)
+            if (sys.EnthalpyMethod.PureComponentEnthalpies[idx].ReferenceState == ReferencePhase.Liquid)
             {
                 expr = sys.EnthalpyMethod.PureComponentEnthalpies[idx].Href
                           + Sym.Par(sys.EquationFactory.GetLiquidHeatCapacityIntegralExpression(sys, comp, T, Tref));

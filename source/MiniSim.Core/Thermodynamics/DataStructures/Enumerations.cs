@@ -112,8 +112,14 @@ namespace MiniSim.Core.Thermodynamics
         LLE,
         VLLE,
         SLE,
-        SLLE        
+        SLLE
     }
+
+    public enum ReferencePhase
+    {
+        Liquid,        
+        Vapor
+    };
 
     public enum PhaseState
     {

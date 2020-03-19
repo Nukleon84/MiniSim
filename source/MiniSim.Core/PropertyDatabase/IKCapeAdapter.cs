@@ -245,7 +245,7 @@ namespace MiniSim.Core.PropertyDatabase
                     {
                         var newComp = DefaultComponent("Default", "Dummy");
                         _currentSystem.EnthalpyMethod.PureComponentEnthalpies.Add(PureEnthalpyFunction.Create(_currentSystem, newComp));
-                        _currentSystem.EnthalpyMethod.PureComponentEnthalpies[id - 1].ReferenceState = PhaseState.Liquid;
+                        _currentSystem.EnthalpyMethod.PureComponentEnthalpies[id - 1].ReferenceState = ReferencePhase.Liquid;
                         _currentSystem.Components.Add(newComp);
                     }
                 }
@@ -988,7 +988,7 @@ namespace MiniSim.Core.PropertyDatabase
                     case "PHAS":
                         {
                             int compIdx = ParseInteger(line[1]);
-                            _currentSystem.EnthalpyMethod.PureComponentEnthalpies[compIdx - 1].ReferenceState = line[2] == "LIQU" ? PhaseState.Liquid : PhaseState.Vapor;
+                            _currentSystem.EnthalpyMethod.PureComponentEnthalpies[compIdx - 1].ReferenceState = line[2] == "LIQU" ? ReferencePhase.Liquid : ReferencePhase.Vapor;
                         }
                         return true;
 
