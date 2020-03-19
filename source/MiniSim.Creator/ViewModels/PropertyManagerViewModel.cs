@@ -77,6 +77,11 @@ namespace MiniSim.Creator.ViewModels
                     CurrentPropertyBlock = null;
                     CurrentPropertyBlock = test;
 
+                    NotifyOfPropertyChange(() => Components);
+                    NotifyOfPropertyChange(() => EnthalpyMethods);
+                    NotifyOfPropertyChange(() => Functions);
+                    NotifyOfPropertyChange(() => Constants);
+
 
 
                 }
@@ -88,7 +93,6 @@ namespace MiniSim.Creator.ViewModels
         {
             if (CurrentPropertyBlock != null)
             {
-
                 _constants = new List<Tuple<Substance, Variable>>();
                 foreach (var sub in CurrentPropertyBlock.Components)
                     foreach (var constant in sub.Constants)
@@ -100,13 +104,14 @@ namespace MiniSim.Creator.ViewModels
                         _functions.Add(new Tuple<Substance, TemperatureDependentPropertyFunction>(sub, function));
 
 
-                NotifyOfPropertyChange(() => Components);
-                NotifyOfPropertyChange(() => EnthalpyMethods);
-                NotifyOfPropertyChange(() => Functions);
-                NotifyOfPropertyChange(() => Constants);
+            
 
 
             }
+            NotifyOfPropertyChange(() => Components);
+            NotifyOfPropertyChange(() => EnthalpyMethods);
+            NotifyOfPropertyChange(() => Functions);
+            NotifyOfPropertyChange(() => Constants);
         }
 
 
