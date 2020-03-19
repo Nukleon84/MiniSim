@@ -1,0 +1,189 @@
+﻿<UserControl x:Class="MiniSim.Creator.Views.PropertyManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:enums="clr-namespace:MiniSim.Core.Thermodynamics;assembly=MiniSim.Core"
+             xmlns:local="clr-namespace:MiniSim.Creator.Views"
+               xmlns:cal="http://www.caliburnproject.org"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             Width="800" Height="800">
+
+    <UserControl.Resources>
+        <ObjectDataProvider x:Key="ActivityValues" MethodName="GetValues" ObjectType="{x:Type system:Enum}"    >
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="enums:ActivityMethod" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="FugacityValues" MethodName="GetValues" ObjectType="{x:Type system:Enum}"    >
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="enums:FugacityMethod" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="EOSValues" MethodName="GetValues" ObjectType="{x:Type system:Enum}"    >
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="enums:EquationOfState" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="EquilibriumValues" MethodName="GetValues" ObjectType="{x:Type system:Enum}"    >
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="enums:EquilibriumApproach" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="PhaseValues" MethodName="GetValues" ObjectType="{x:Type system:Enum}"    >
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="enums:AllowedPhases" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        
+        <ObjectDataProvider x:Key="ReferencePhaseValues" MethodName="GetValues" ObjectType="{x:Type system:Enum}"    >
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="enums:ReferencePhase" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </UserControl.Resources>
+    
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="10" >
+            <Button  x:Name="AddPropertyBlock" ToolTip="Create new Property Block" Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                     cal:Message.Attach="[Event Click] = [Action AddPropertyBlock()]"
+                                      Margin="10" DockPanel.Dock="Right" Padding="2" >
+                <materialDesign:PackIcon Kind="Plus" HorizontalAlignment="Center" Width="20" Height="20" />
+            </Button>
+            <ComboBox  Name="PropertyBlocks"  DisplayMemberPath="Summary" SelectedItem="{Binding CurrentPropertyBlock}" ItemsSource="{Binding AvailablePropertyBlocks}"></ComboBox>
+        </DockPanel>
+        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="3"
+                    Margin="0 16 0 0">
+            <Button IsDefault="True" Style="{DynamicResource MaterialDesignFlatButton}"
+                    Command="{x:Static wpf:DialogHost.CloseDialogCommand}">
+                <Button.CommandParameter>
+                    <system:Boolean>True</system:Boolean>
+                </Button.CommandParameter>
+                ACCEPT
+            </Button>
+            <Button IsCancel="True" Margin="8 0 0 0" Style="{DynamicResource MaterialDesignFlatButton}"
+                    Command="{x:Static wpf:DialogHost.CloseDialogCommand}">
+                <Button.CommandParameter>
+                    <system:Boolean>False</system:Boolean>
+                </Button.CommandParameter>
+                CANCEL
+            </Button>
+        </StackPanel>
+        
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <GroupBox Header="Name" Margin="10">
+                    <TextBox Text="{Binding CurrentPropertyBlock.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" Margin="10"></TextBox>
+                </GroupBox>
+
+                <GroupBox Header="Components" Margin="10">
+                    <Grid>
+                        <DataGrid ItemsSource="{Binding Components}" AutoGenerateColumns="False" CanUserAddRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Id" Binding="{Binding ID, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></DataGridTextColumn>
+                                <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></DataGridTextColumn>
+                                <DataGridTextColumn Header="CAS-No." Binding="{Binding CasNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></DataGridTextColumn>
+                                <DataGridTextColumn Header="Molar Weight (kg/kmol)" Binding="{Binding MolarWeight.DisplayValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></DataGridTextColumn>
+                                <DataGridCheckBoxColumn Header="Henry" Binding="{Binding IsFixed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></DataGridCheckBoxColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <materialDesign:PopupBox  PlacementMode="BottomAndAlignRightEdges"  HorizontalAlignment="Right" VerticalAlignment="Top"
+                                      Margin="0,-40,0,0" StaysOpen="True">
+                            <StackPanel Margin="10" Width="200">
+                                <TextBox Text="{Binding SubstanceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch" materialDesign:HintAssist.Hint="Substance Name Filter"></TextBox>
+                                <ListView Margin="0,10,0,0" SelectedItem="{Binding NewSubstance}" ItemsSource="{Binding FoundSubstances}" Height="200" HorizontalAlignment="Stretch"></ListView>
+                                <Button  x:Name="AddSubstance" ToolTip="Add selected substance to list" Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
+                     cal:Message.Attach="[Event Click] = [Action AddSubstance()]"
+                                      Margin="10" HorizontalAlignment="Center"  Padding="2" >
+                                    <materialDesign:PackIcon Kind="Plus" HorizontalAlignment="Center" Width="20" Height="20" />
+                                </Button>
+                            </StackPanel>
+                        </materialDesign:PopupBox>
+                        
+                     
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Methods" Margin="10">
+                    <StackPanel Margin="10" >
+                        <WrapPanel>
+                            <TextBlock VerticalAlignment="Center" Text="Equilibrium Approach" Width="180"></TextBlock>
+                            <ComboBox SelectedItem="{Binding CurrentPropertyBlock.EquilibriumMethod.EquilibriumApproach}" ItemsSource="{Binding Source={StaticResource EquilibriumValues}}" Width="150"></ComboBox>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <TextBlock VerticalAlignment="Center" Text="Activity Coeffiecient Method" Width="180"></TextBlock>
+                            <ComboBox SelectedItem="{Binding CurrentPropertyBlock.EquilibriumMethod.Activity}" Width="150" ItemsSource="{Binding Source={StaticResource ActivityValues}}"></ComboBox>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <TextBlock VerticalAlignment="Center" Text="Fugacity Coeffiecient Method" Width="180"></TextBlock>
+                            <ComboBox SelectedItem="{Binding CurrentPropertyBlock.EquilibriumMethod.Fugacity}" Width="150" ItemsSource="{Binding Source={StaticResource FugacityValues}}"></ComboBox>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <TextBlock VerticalAlignment="Center" Text="Equation Of State" Width="180"></TextBlock>
+                            <ComboBox SelectedItem="{Binding CurrentPropertyBlock.EquilibriumMethod.EquationOfState}" ItemsSource="{Binding Source={StaticResource EOSValues}}" Width="150"></ComboBox>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <TextBlock VerticalAlignment="Center" Text="Allowed Phases" Width="180"></TextBlock>
+                            <ComboBox SelectedItem="{Binding CurrentPropertyBlock.EquilibriumMethod.AllowedPhases}" ItemsSource="{Binding Source={StaticResource PhaseValues}}" Width="150"></ComboBox>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <TextBlock VerticalAlignment="Center" Text="Allow Henry Components" Width="180"></TextBlock>
+                            <CheckBox IsChecked="{Binding CurrentPropertyBlock.EquilibriumMethod.AllowHenryComponents }" Width="150"></CheckBox>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <TextBlock VerticalAlignment="Center" Text="Use Poynting Correction" Width="180"></TextBlock>
+                            <CheckBox IsChecked="{Binding CurrentPropertyBlock.EquilibriumMethod.PoyntingCorrection }" Width="150"></CheckBox>
+                        </WrapPanel>
+                        
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="Constants" Margin="10">
+                    <DataGrid ItemsSource="{Binding Constants}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Component" Binding="{Binding Item1.ID}" IsReadOnly="True"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Item2.FullName}" IsReadOnly="True"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Value" Binding="{Binding Item2.DisplayValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ></DataGridTextColumn>
+                            <DataGridTextColumn Header="Unit" Binding="{Binding Item2.DisplayUnit}" IsReadOnly="True"></DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+
+                
+                <GroupBox Header="Functions" Margin="10">
+                    <DataGrid ItemsSource="{Binding Functions}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Component" Binding="{Binding Item1.ID}" IsReadOnly="True"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Property" Binding="{Binding Item2.Property}" IsReadOnly="True"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Coefficients" Binding="{Binding Item2.NumberOfCoefficients}" IsReadOnly="True"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Y Unit" Binding="{Binding Item2.YUnit}" IsReadOnly="True"></DataGridTextColumn>                            
+                            <DataGridTextColumn Header="Tmin [K]" Binding="{Binding Item2.MinimumX.SIValue}" IsReadOnly="True"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Tmax [K]" Binding="{Binding Item2.MaximumX.SIValue}" IsReadOnly="True"></DataGridTextColumn>
+                            
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+
+                <GroupBox Header="Parameters" Margin="10">
+
+                </GroupBox>
+
+                <GroupBox Header="Enthalpy" Margin="10">
+                    <DataGrid ItemsSource="{Binding EnthalpyMethods}" AutoGenerateColumns="False" CanUserAddRows="False"  CanUserDeleteRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Id" Binding="{Binding Component.ID}" IsReadOnly="True"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Ref.Temperature [K]" Binding="{Binding Tref.SIValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Ref. Enthalpy [J/mol]" Binding="{Binding Href.SIValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Transition Temperature [K]" Binding="{Binding TPhaseChange.SIValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></DataGridTextColumn>
+                            <DataGridComboBoxColumn Header="Ref. Phase" ItemsSource="{Binding Source={StaticResource ReferencePhaseValues}}" SelectedItemBinding="{Binding ReferenceState}"></DataGridComboBoxColumn>
+                            <DataGridCheckBoxColumn Header="Transition at Tsys" Binding="{Binding PhaseChangeAtSystemTemperature, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></DataGridCheckBoxColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+
+    </DockPanel>
+</UserControl>

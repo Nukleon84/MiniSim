@@ -68,7 +68,7 @@
                                 <materialDesign:PackIcon Kind="BookOpenPageVariant" />
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Property Blocks" >
+                        <MenuItem Header="Property Blocks" x:Name="ShowPropertyBlocks" cal:Message.Attach="[Event Click] = [Action ShowPropertyBlockEditor()]">
                             <MenuItem.Icon>
                                 <materialDesign:PackIcon Kind="Beaker" />
                             </MenuItem.Icon>

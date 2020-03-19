@@ -97,12 +97,16 @@
     <Compile Include="Messaging\UpdateProgressBarMessage.cs" />
     <Compile Include="Messaging\UpdateSolverStatusMessage.cs" />
     <Compile Include="ViewModels\CanvasViewModel.cs" />
+    <Compile Include="ViewModels\PropertyManagerViewModel.cs" />
     <Compile Include="ViewModels\RelayCommand.cs" />
     <Compile Include="Views\CanvasView.xaml.cs">
       <DependentUpon>CanvasView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\EditFlowsheetItemDialog.xaml.cs">
       <DependentUpon>EditFlowsheetItemDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PropertyManagerView.xaml.cs">
+      <DependentUpon>PropertyManagerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ShellView.xaml.cs">
       <DependentUpon>ShellView.xaml</DependentUpon>
@@ -154,6 +158,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\EditFlowsheetItemDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\PropertyManagerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

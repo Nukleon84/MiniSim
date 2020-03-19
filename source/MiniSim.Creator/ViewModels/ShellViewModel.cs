@@ -150,6 +150,8 @@ namespace MiniSim.Creator.ViewModels
 
         }
 
+   
+
         public void Shutdown()
         {
             App.Current.Shutdown();
@@ -203,6 +205,37 @@ namespace MiniSim.Creator.ViewModels
 
 
         }
+
+        public async void ShowPropertyBlockEditor()
+        {
+            var vm = new PropertyManagerViewModel(_eventAggregator);
+
+            foreach(var propertyBlock in AvailablePropertyBlocks)
+            {
+                vm.AvailablePropertyBlocks.Add(propertyBlock);
+            }
+
+            vm.CurrentPropertyBlock = CurrentPropertyBlock;
+
+            var view = new PropertyManagerView()
+            {
+                DataContext = vm
+            };
+
+            //show the dialog
+            var result = await DialogHost.Show(view, "RootDialog");
+
+            if(result.Equals(true))
+            {
+                foreach(var propertyBlock in vm.AvailablePropertyBlocks)
+                {
+                    if (!AvailablePropertyBlocks.Contains(propertyBlock))
+                        AvailablePropertyBlocks.Add(propertyBlock);
+                }
+            }
+
+        }
+
 
         public  void Handle(ShowReportMessage message)
         {
